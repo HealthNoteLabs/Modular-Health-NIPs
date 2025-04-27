@@ -1,0 +1,337 @@
+## NIP-101h - Health Profile Framework
+
+**Status:** Draft  
+**Author:** TheWildHustle
+
+## Abstract
+
+This NIP defines a framework for storing and sharing health and fitness profile data on Nostr. It establishes a set of standardized event kinds for individual health metrics, allowing applications to selectively access specific health information while preserving user control and privacy.
+
+In this framework exists
+- NIP-101h.1 Weight using kind 1351 
+- NIP-101h.2 Height using kind 1352 
+- NIP-101h.3 Age using kind 1353 
+- NIP-101h.4 Gender using kind 1354 
+- NIP-101h.5 Fitness Level using kind 1355 
+
+
+## Motivation
+
+I want to build and support an ecosystem of health and fitness related nostr clients that have the ability to share and utilize a bunch of specific interoperable health metrics. 
+
+- **Selective access** - Applications can access only the data they need
+- **User control** - Users can choose which metrics to share
+- **Interoperability** - Different health applications can share data
+- **Privacy** - Sensitive health information can be managed independently
+
+## Specification
+
+### Kind Number Range
+
+Health profile metrics use the kind number range 1351-1399:
+
+| Kind      | Metric                             |
+| --------- | ---------------------------------- |
+| 1351      | Weight                             |
+| 1352      | Height                             |
+| 1353      | Age                                |
+| 1354      | Gender                             |
+| 1355      | Fitness Level                      |
+| 1356-1399 | Reserved for future health metrics |
+
+### Common Structure
+
+All health metric events SHOULD follow these guidelines:
+
+- The content field contains the primary value of the metric
+- Required tags:
+  - `['t', 'health']` - For categorizing as health data
+  - `['t', metric-specific-tag]` - For identifying the specific metric
+  - `['unit', unit-of-measurement]` - When applicable
+- Optional tags:
+  - `['converted_value', value, unit]` - For providing alternative unit measurements
+  - `['timestamp', ISO8601-date]` - When the metric was measured
+  - `['source', application-name]` - The source of the measurement
+
+### Unit Handling
+
+Health metrics often have multiple ways to be measured. To ensure interoperability:
+
+- Where multiple units are possible, one standard unit SHOULD be chosen as canonical
+- When using non-standard units, a `converted_value` tag SHOULD be included with the canonical unit
+- Both the original and converted values should be provided for maximum compatibility
+
+### Client Implementation Guidelines
+
+Clients implementing this NIP SHOULD:
+
+- Allow users to explicitly choose which metrics to publish
+- Support reading health metrics from other users when appropriate permissions exist
+- Support updating metrics with new values over time
+- Preserve tags they don't understand for future compatibility
+- Support at least the canonical unit for each metric
+
+### Extensions
+
+New health metrics can be proposed as extensions to this NIP using the format:
+
+- NIP-101h.X where X is the metric number
+
+Each extension MUST specify:
+- A unique kind number in the range 1351-1399
+- The content format and meaning
+- Required and optional tags
+- Examples of valid events
+
+## Privacy Considerations
+
+Health data is sensitive personal information. Clients implementing this NIP SHOULD:
+
+- Make it clear to users when health data is being published
+- Consider incorporating NIP-44 encryption for sensitive metrics
+- Allow users to selectively share metrics with specific individuals
+- Provide easy ways to delete previously published health data
+
+---
+
+# NIP-101h.1: Weight
+
+## Description
+This NIP defines the format for storing and sharing weight data on Nostr.
+
+## Event Kind: 1351
+
+## Content
+The content field MUST contain the numeric weight value as a string.
+
+## Required Tags
+- ['unit', 'kg' or 'lb'] - Unit of measurement
+- ['t', 'health'] - Categorization tag
+- ['t', 'weight'] - Specific metric tag
+
+## Optional Tags
+- ['converted_value', value, unit] - Provides the weight in alternative units for interoperability
+- ['timestamp', ISO8601 date] - When the weight was measured
+
+## Examples
+```json
+{
+  "kind": 1351,
+  "content": "70",
+  "tags": [
+    ["unit", "kg"],
+    ["t", "health"],
+    ["t", "weight"]
+  ]
+}
+```
+
+```json
+{
+  "kind": 1351,
+  "content": "154",
+  "tags": [
+    ["unit", "lb"],
+    ["t", "health"],
+    ["t", "weight"],
+    ["converted_value", "69.85", "kg"]
+  ]
+}
+```
+
+
+
+## NIP-101h.2: Height
+
+**Status:** Draft
+
+### Description
+
+This NIP defines the format for storing and sharing height data on Nostr.
+
+**Event Kind:** 1352
+
+### Content
+
+The content field can use two formats:
+- For metric height: A string containing the numeric height value in centimeters (cm)
+- For imperial height: A JSON string with feet and inches properties
+
+### Required Tags
+
+- `['t', 'health']` - Categorization tag
+- `['t', 'height']` - Specific metric tag
+- `['unit', 'cm' or 'imperial']` - Unit of measurement
+
+### Optional Tags
+
+- `['converted_value', value, 'cm']` - Provides height in centimeters for interoperability when imperial is used
+- `['timestamp', ISO8601-date]` - When the height was measured
+
+### Examples
+
+```jsx
+// Example 1: Metric height
+Apply to App.jsx
+
+// Example 2: Imperial height with conversion
+Apply to App.jsx
+```
+
+### Implementation Notes
+
+- Centimeters (cm) is the canonical unit for height interoperability
+- When using imperial units, a conversion to centimeters SHOULD be provided
+- Height values SHOULD be positive integers
+- For maximum compatibility, clients SHOULD support both formats
+
+---
+
+## NIP-101h.3: Age
+
+**Status:** Draft
+
+### Description
+
+This NIP defines the format for storing and sharing age data on Nostr.
+
+**Event Kind:** 1353
+
+### Content
+
+The content field MUST contain the numeric age value as a string.
+
+### Required Tags
+
+- `['unit', 'years']` - Unit of measurement
+- `['t', 'health']` - Categorization tag
+- `['t', 'age']` - Specific metric tag
+
+### Optional Tags
+
+- `['timestamp', ISO8601-date]` - When the age was recorded
+- `['dob', ISO8601-date]` - Date of birth (if the user chooses to share it)
+
+### Examples
+
+```jsx
+// Example 1: Basic age
+Apply to App.jsx
+
+// Example 2: Age with DOB
+Apply to App.jsx
+```
+
+### Implementation Notes
+
+- Age SHOULD be represented as a positive integer
+- For privacy reasons, date of birth (dob) is optional
+- Clients SHOULD consider updating age automatically if date of birth is known
+- Age can be a sensitive metric and clients may want to consider encrypting this data
+
+---
+
+## NIP-101h.4: Gender
+
+**Status:** Draft
+
+### Description
+
+This NIP defines the format for storing and sharing gender data on Nostr.
+
+**Event Kind:** 1354
+
+### Content
+
+The content field contains a string representing the user's gender.
+
+### Required Tags
+
+- `['t', 'health']` - Categorization tag
+- `['t', 'gender']` - Specific metric tag
+
+### Optional Tags
+
+- `['timestamp', ISO8601-date]` - When the gender was recorded
+- `['preferred_pronouns', string]` - User's preferred pronouns
+
+### Common Values
+
+While any string value is permitted, the following common values are recommended for interoperability:
+- male
+- female
+- non-binary
+- other
+- prefer-not-to-say
+
+### Examples
+
+```jsx
+// Example 1: Basic gender
+Apply to App.jsx
+
+// Example 2: Gender with pronouns
+Apply to App.jsx
+```
+
+### Implementation Notes
+
+- Clients SHOULD allow free-form input for gender
+- For maximum compatibility, clients SHOULD support the common values
+- Gender is a sensitive personal attribute and clients SHOULD consider appropriate privacy controls
+- Applications focusing on health metrics should be respectful of gender diversity
+
+---
+
+## NIP-101h.5: Fitness Level
+
+**Status:** Draft
+
+### Description
+
+This NIP defines the format for storing and sharing fitness level data on Nostr.
+
+**Event Kind:** 1355
+
+### Content
+
+The content field contains a string representing the user's fitness level.
+
+### Required Tags
+
+- `['t', 'health']` - Categorization tag
+- `['t', 'fitness']` - Fitness category tag
+- `['t', 'level']` - Specific metric tag
+
+### Optional Tags
+
+- `['timestamp', ISO8601-date]` - When the fitness level was recorded
+- `['activity', activity-type]` - Specific activity the fitness level relates to
+- `['metrics', JSON-string]` - Quantifiable fitness metrics used to determine level
+
+### Common Values
+
+While any string value is permitted, the following common values are recommended for interoperability:
+- beginner
+- intermediate
+- advanced
+- elite
+- professional
+
+### Examples
+
+```jsx
+// Example 1: Basic fitness level
+Apply to App.jsx
+
+// Example 2: Activity-specific fitness level with metrics
+Apply to App.jsx
+```
+
+### Implementation Notes
+
+- Fitness level is subjective and may vary by activity
+- The activity tag can be used to specify fitness level for different activities
+- The metrics tag can provide objective measurements to support the fitness level
+- Clients can extend this format to include activity-specific fitness assessments
+- For general fitness apps, the simple beginner/intermediate/advanced scale is recommended
