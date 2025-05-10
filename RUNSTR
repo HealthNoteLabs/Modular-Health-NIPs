@@ -1,0 +1,112 @@
+HIGH-LEVEL CONCEPTS
+────────────────────────────────────────
+Two surfaces
+• Stats Page – already exists and will remain the “visual / graph” hub.
+• Nostr Stats Page – new, reachable from a button on the Stats page header (NOT from Settings). Simple list for now.
+Data sources & scope
+• Local Store – runs and metrics the phone has recorded.
+• Nostr Aggregated – same metrics queried from relays (public + private if user supplies key/secret).
+• Kinds in scope:
+– NIP-101e workout records → kind 1301
+– NIP-101h metrics → kinds 1351-1357 (+ future 1358-1399 & 2357 etc.)
+Publication modes
+• Public Save: publish plain events.
+• Private Save: encrypt content with NIP-44 then publish (tags still public).
+• Blossom Export: send user-selected metrics as CSV or JSON to their Blossom server.
+Re-publish UX
+• Each row in the Nostr Stats list has:
+– “Re-publish” dropdown → Public | Private.
+• Bulk actions on top (“Select metrics → Publish as …”).
+Data privacy controls
+• Global toggle: “Default publish mode: Public / Private / Ask Each Time”.
+• Metric-level switches surfaced on Profile screen for automatic publishing.
+Data cleanup
+• “Erase Local Health & Workout Data” on Stats page.
+• Option to forget cached Nostr data (does NOT delete from relays).
+────────────────────────────────────────
+FLOW & WIREFRAME NOTES
+────────────────────────────────────────
+Stats Page (existing)
+┌───────────────────────────────────────┐
+│ Stats │
+│ [Aggregated ▾] [All-time ▾] │ ← data-source + time-range filters
+│ • Distance Trend Graph │
+│ • Calories Trend Graph │
+│ • Weight Trend Graph │
+│ … │
+│ ─────────────── │
+│ [View Raw Nostr Stats] ▶ │ ← navigates to Nostr Stats list
+└───────────────────────────────────────┘
+Nostr Stats Page (new)
+┌───────────────────────────────────────┐
+│ Raw Nostr Stats │
+│ [Refresh] [Select ▾] actions │
+│ ───────────────────────────────────── │
+│ 1301 · 2025-05-08 Run 5 km in 28m │ (tap → JSON modal)
+│ 1351 · 2025-05-07 Weight 70 kg │ […] menu → Re-publish | Delete local
+│ 1357 · 2025-05-06 Calories 350 kcal │
+│ … │
+│ ───────────────────────────────────── │
+│ Export » CSV | JSON to Blossom │
+└───────────────────────────────────────┘
+────────────────────────────────────────
+TECHNICAL ARCHITECTURE OUTLINE
+────────────────────────────────────────
+StatsContext (new)
+– holds source (“local” | “nostr”) and timeRange (e.g. all, month, week).
+– exposes stats, healthMetrics, workouts, refresh().
+NostrStatsService
+– fetchEvents(kinds[], pubkey, since?) → uses window.nostr or pool to query relays.
+– supports private flag: decrypt NIP-44 content if tags indicate encryption.
+– caches to IndexedDB with timestamp.
+CSV/JSON Export Utility
+– exportMetrics(metrics, format) returns blob; caller uploads to Blossom via fetch.
+Re-publish helpers
+– republishEvent(original, mode)
+• mode = public → strip encryption tag if any, publish as-is.
+• mode = private → encrypt content, add ['content-type', 'nip44'] tag.
+– Provide optional replacement of old event via ['e', oldId, '', 'replace'].
+UI Components
+• MetricRow (kind, friendly label, date & value)
+• BulkActionBar (actions appear when rows selected)
+• DataSourceSwitcher (Aggregated / Local selector)
+• GraphCard (already on Stats page)
+Encryption Keys
+– Use nostr-tools nip44.encrypt(pubkey, privkey, plaintext) for “Private Save”.
+– Store user setting “defaultPublish = { public | private | ask }”.
+Local erase flow
+– Clear IndexedDB tables runs, healthMetrics & nostrCache.
+– Prompt for confirmation with irreversible warning.
+────────────────────────────────────────
+BACKLOG (EPIC → TASKS)
+────────────────────────────────────────
+E1 Nostr Stats MVP
+T1 create StatsContext with source & time filtering
+T2 build NostrStatsService (query + caching)
+T3 route & screen skeleton for Nostr Stats list
+T4 MetricRow component + basic styling
+T5 republish flow (re-use createXEvent helpers, add NIP-44 branch)
+T6 export to Blossom (CSV/JSON, simple POST)
+T7 data-source switch & refresh logic
+T8 local data wipe flow
+T9 unit tests for service & helpers
+E2 Privacy Controls
+T10 default publish mode setting in Settings → Privacy
+T11 per-metric toggle in Profile screen
+T12 UI for “Public Save / Private Save” on confirmation dialog
+T13 decryption support for reading private metrics
+E3 Graph Enhancements on Stats page
+T14 hook Stats page graphs to StatsContext (aggregated vs local)
+T15 add Calories & Weight sparklines
+T16 time-range filter presets
+────────────────────────────────────────
+OPEN QUESTIONS TO CONFIRM BEFORE DESIGN LOCK
+────────────────────────────────────────
+Blossom export endpoint spec (URL pattern, auth header?).
+Should “erase local data” also delete on-device workout GPX files (if any)?
+What authentication mechanism is required for posting private events to the user’s private relay(s)?
+Any “opt-in” consent required before encrypting data (key backup message)?
+Acceptable library for charts (Victory, Recharts, or keep current)?
+Let me know if any of this needs tweaking or if you’d like to drill into a particular task.
+
+
