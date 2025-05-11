@@ -39,6 +39,29 @@ export const cli = yargs(hideBin(process.argv))
           description: 'Remove personally identifiable information from output',
           default: false,
         })
+        .option('stats', {
+          type: 'boolean',
+          description: 'Generate aggregated time-series stats (JSON/CSV). Overrides --to',
+          default: false,
+        })
+        .option('stats-format', {
+          type: 'string',
+          description: 'Stats output format',
+          choices: ['json', 'csv'] as const,
+          default: 'json',
+        })
+        .option('stats-bucket', {
+          type: 'string',
+          description: 'Bucket size for aggregation',
+          choices: ['day', 'week', 'month'] as const,
+          default: 'day',
+        })
+        .option('stats-aggregate', {
+          type: 'string',
+          description: 'Aggregate function',
+          choices: ['avg', 'sum', 'min', 'max', 'count'] as const,
+          default: 'avg',
+        })
         .option('kinds', {
           type: 'string',
           description: 'Comma-separated list of event kind numbers to include',
@@ -48,11 +71,86 @@ export const cli = yargs(hideBin(process.argv))
         .version('0.1.0')
         .alias('version', 'v'),
     async (argv) => {
-      const { inputDir, to, out } = argv as unknown as {
+      const { inputDir, to, out, stats, statsFormat, statsBucket, statsAggregate } = argv as unknown as {
         inputDir: string;
         to: string;
         out?: string;
+        stats?: boolean;
+        statsFormat?: string;
+        statsBucket?: string;
+        statsAggregate?: string;
       };
+
+      // Handle --stats early
+      if (stats) {
+        const path = await import('path');
+        const fs = await import('fs/promises');
+
+        const { loadEventsFromDir } = await import('./loaders/jsonLoader.js');
+
+        let events = await loadEventsFromDir(inputDir);
+
+        // Filter kinds if provided
+        if (argv.kinds) {
+          const kinds = String(argv.kinds)
+            .split(',')
+            .map((k) => Number(k.trim()));
+          events = events.filter((e) => kinds.includes(e.kind));
+        }
+
+        // @ts-ignore – health-note workspace package
+        const { toTimeSeries, groupByBucket } = await import('health-note');
+
+        const series = toTimeSeries(events);
+
+        const bucketed = groupByBucket(series, {
+          // @ts-ignore
+          bucket: statsBucket,
+          // @ts-ignore
+          aggregate: statsAggregate,
+        });
+
+        const metricField = argv.kinds ? argv.kinds : 'mixed';
+
+        const aggregationObject = {
+          metric: metricField,
+          period: statsBucket,
+          series: bucketed,
+        };
+
+        // Validate against aggregation schema
+        try {
+          const { default: Ajv } = await import('ajv');
+          const { readFile } = await import('fs/promises');
+          const pathMod = await import('path');
+          const ajv = new Ajv({ allErrors: true });
+          const schemaPath = pathMod.resolve(process.cwd(), 'schemas', 'aggregation.schema.json');
+          const schemaContent = JSON.parse(await readFile(schemaPath, 'utf8'));
+          const validateAgg = ajv.compile(schemaContent);
+          if (!validateAgg(aggregationObject)) {
+            console.error('Aggregation output failed schema validation:', validateAgg.errors);
+            process.exitCode = 1;
+            return;
+          }
+        } catch (err) {
+          console.warn('Warning: could not validate aggregation output', err);
+        }
+
+        const outputPath = out ?? `stats.${statsFormat === 'csv' ? 'csv' : 'json'}`;
+
+        if (statsFormat === 'csv') {
+          const header = 'date,value,count,min,max\n';
+          const lines = bucketed
+            .map((p: any) => `${p.date},${p.value},${p.count ?? ''},${p.min ?? ''},${p.max ?? ''}`)
+            .join('\n');
+          await fs.writeFile(outputPath, header + lines, 'utf8');
+        } else {
+          await fs.writeFile(outputPath, JSON.stringify(aggregationObject, null, 2), 'utf8');
+        }
+
+        console.log(`Aggregated stats written to ${outputPath}`);
+        return;
+      }
 
       // Dynamically import heavy modules only when needed
       if (to === 'csv') {

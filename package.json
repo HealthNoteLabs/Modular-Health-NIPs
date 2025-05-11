@@ -1,0 +1,20 @@
+{
+  "name": "nip101h-monorepo",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Monorepo containing NIP-101h export tools, analytics SDK, and related packages.",
+  "workspaces": [
+    "tools/export",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run --workspaces --if-present build",
+    "test": "npm run --workspaces --if-present test",
+    "lint": "npm run --workspaces --if-present lint",
+    "format": "npm run --workspaces --if-present format"
+  },
+  "devDependencies": {
+    "eslint": "^8.56.0",
+    "prettier": "^3.2.5"
+  }
+} 

@@ -121,4 +121,12 @@ Design choices:
 
 | Date | Change |
 |------|--------|
-| 2025-05-11 | Initial guide created – scoped milestones & layout | 
+| 2025-05-11 | Initial guide created – scoped milestones & layout |
+| 2025-05-11 | Step 0 completed – root package.json with workspaces added |
+| 2025-05-11 | Step 2 completed – scaffolded packages/analytics-sdk with tsup & TypeScript |
+| 2025-05-11 | Step 3 implemented – initial JSON loader and toTimeSeries for weight (kind 1351); package renamed to health-note |
+| 2025-05-11 | Step 3 continued – added groupByBucket helper & tests |
+| 2025-05-11 | Phase-1 core complete – CSV & SQLite loaders, AJV validator wrapper |
+| 2025-05-11 | Phase 2 – --stats flag added to CLI, integrates health-note, aggregation schema drafted |
+| 2025-05-11 | Phase 2 update – bucket aggregation & schema-conformant output implemented |
+| 2025-05-11 | Phase 2 finalized – aggregation output validated against schema, bucket/aggregate flags exposed | 

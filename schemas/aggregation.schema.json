@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "NIP-101h Aggregation",
+  "type": "object",
+  "required": ["metric", "period", "series"],
+  "properties": {
+    "metric": {
+      "type": "string",
+      "description": "Metric name (e.g., weight) or kind number"
+    },
+    "period": {
+      "type": "string",
+      "enum": ["day", "week", "month"],
+      "description": "Aggregation bucket size"
+    },
+    "series": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["date", "value"],
+        "properties": {
+          "date": { "type": "string", "format": "date" },
+          "value": { "type": "number" },
+          "count": { "type": "integer", "minimum": 0 },
+          "min": { "type": "number" },
+          "max": { "type": "number" }
+        }
+      }
+    }
+  }
+} 
