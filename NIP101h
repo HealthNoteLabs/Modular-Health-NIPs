@@ -15,6 +15,9 @@ In this framework exists
 - NIP-101h.5 Fitness Level using kind 1355 
 - NIP-101h.6 Workout Intensity using kind 1356
 - NIP-101h.7 Caloric Data using kinds 1357 (expended) and 2357 (consumed)
+- NIP-101h.8 Activity Duration using kind 1358
+- NIP-101h.9 Step Count using kind 1359
+- NIP-101h.10 Elevation using kind 1360
 
 
 ## Motivation
@@ -42,7 +45,10 @@ Health profile metrics use the kind number range 1351-1399 for primary metrics, 
 | 1356      | Workout Intensity                  |
 | 1357      | Calories Expended                  |
 | 2357      | Calories Consumed                  |
-| 1358-1399 | Reserved for future health metrics |
+| 1358      | Activity Duration                  |
+| 1359      | Step Count                         |
+| 1360      | Elevation                          |
+| 1361-1399 | Reserved for future health metrics |
 | 2358-2399 | Reserved for paired health metrics |
 
 ### Common Structure
@@ -72,6 +78,7 @@ Health metrics often have multiple ways to be measured. To ensure interoperabili
 Clients implementing this NIP SHOULD:
 
 - Allow users to explicitly choose which metrics to publish
+- **Default to encrypting event content using NIP-44 for all health metrics, providing a clear option for users to publish unencrypted if they choose.**
 - Support reading health metrics from other users when appropriate permissions exist
 - Support updating metrics with new values over time
 - Preserve tags they don't understand for future compatibility
@@ -94,9 +101,73 @@ Each extension MUST specify:
 Health data is sensitive personal information. Clients implementing this NIP SHOULD:
 
 - Make it clear to users when health data is being published
+- **Strongly consider defaulting to NIP-44 encryption for the `content` of all health metric events. An option to publish unencrypted data may be provided but should require explicit user consent per event or per metric type.**
 - Consider incorporating NIP-44 encryption for sensitive metrics
 - Allow users to selectively share metrics with specific individuals
 - Provide easy ways to delete previously published health data
+
+## Data Export (e.g., for Blossom)
+
+To facilitate interoperability and data portability, especially with personal data servers like Blossom, NIP-101h metric data can be exported in common formats like JSON and CSV.
+
+### JSON Export
+When exporting multiple NIP-101h events as JSON, the output SHOULD be an array of standard Nostr event objects, each conforming to its respective NIP-101h.X specification.
+
+```json
+[
+  {
+    "kind": 1351, // Weight
+    "content": "70", // Encrypted if NIP-44 was used
+    "tags": [
+      ["unit", "kg"],
+      ["t", "health"],
+      ["t", "weight"],
+      ["timestamp", "2025-05-01T10:00:00Z"]
+      // other relevant tags, including NIP-44 tags if encrypted
+    ],
+    "created_at": 1672531200,
+    "pubkey": "...",
+    "id": "...",
+    "sig": "..."
+  },
+  {
+    "kind": 1352, // Height
+    "content": "175", // Encrypted if NIP-44 was used
+    "tags": [
+      ["unit", "cm"],
+      ["t", "health"],
+      ["t", "height"],
+      ["timestamp", "2025-05-01T10:00:00Z"]
+      // other relevant tags
+    ],
+    "created_at": 1672531201,
+    "pubkey": "...",
+    "id": "...",
+    "sig": "..."
+  }
+  // ... more events
+]
+```
+
+If NIP-44 encryption was used for the original event, the `content` field in the JSON export SHOULD remain encrypted, and the relevant NIP-44 `["encryption_algo", "nip44"]` and `["p", <receiver_pubkey>]` tags (or other NIP-44 related tags) should be preserved.
+
+### CSV Export
+CSV export requires a flattened structure. A recommended approach is to have common columns and then metric-specific columns. Clients or export tools will need to decide on a consistent set of columns for a given export.
+
+**Common Columns:** `id`, `kind`, `created_at`, `pubkey`, `metric_type`, `timestamp`, `unit`, `value`, `source`, `encrypted (true/false)`
+
+**Example CSV Structure (conceptual):**
+
+`id,kind,created_at,pubkey,metric_type,timestamp,unit,value,activity,period,goal,source,encrypted`
+`event_id1,1351,1672531200,pubkey1,weight,2025-05-01T10:00:00Z,kg,70,,,RunstrApp,true`
+`event_id2,1359,1672531205,pubkey1,step_count,2025-05-01T23:59:59Z,steps,10520,,daily,10000,DeviceA,true`
+
+**Notes for CSV Export:**
+-   The `value` column would store the primary content of the NIP-101h event.
+-   `metric_type` could be a human-readable version of the metric (e.g., "weight", "step_count").
+-   For encrypted content, the `value` field in the CSV might be an empty string, a placeholder like "[encrypted]", or the encrypted string itself, depending on the use case. The `encrypted` column explicitly states the encryption status.
+-   Additional tags from the Nostr event can be added as extra columns (e.g., `activity`, `period`, `goal` as shown above).
+-   The specific columns included in a CSV export can be tailored to the application or user's needs. Individual NIP-101h.X specifications may provide more tailored CSV column suggestions if particular tags are common for that metric.
 
 ---
 
@@ -259,16 +330,6 @@ The content field contains a string representing the user's gender.
 ### Optional Tags
 
 - `['timestamp', ISO8601-date]` - When the gender was recorded
-- `['preferred_pronouns', string]` - User's preferred pronouns
-
-### Common Values
-
-While any string value is permitted, the following common values are recommended for interoperability:
-- male
-- female
-- non-binary
-- other
-- prefer-not-to-say
 
 ### Examples
 
@@ -276,234 +337,11 @@ While any string value is permitted, the following common values are recommended
 // Example 1: Basic gender
 Apply to App.jsx
 
-// Example 2: Gender with pronouns
+// Example 2: Gender with timestamp
 Apply to App.jsx
 ```
 
 ### Implementation Notes
 
-- Clients SHOULD allow free-form input for gender
-- For maximum compatibility, clients SHOULD support the common values
-- Gender is a sensitive personal attribute and clients SHOULD consider appropriate privacy controls
-- Applications focusing on health metrics should be respectful of gender diversity
-
----
-
-## NIP-101h.5: Fitness Level
-
-**Status:** Draft
-
-### Description
-
-This NIP defines the format for storing and sharing fitness level data on Nostr.
-
-**Event Kind:** 1355
-
-### Content
-
-The content field contains a string representing the user's fitness level.
-
-### Required Tags
-
-- `['t', 'health']` - Categorization tag
-- `['t', 'fitness']` - Fitness category tag
-- `['t', 'level']` - Specific metric tag
-
-### Optional Tags
-
-- `['timestamp', ISO8601-date]` - When the fitness level was recorded
-- `['activity', activity-type]` - Specific activity the fitness level relates to
-- `['metrics', JSON-string]` - Quantifiable fitness metrics used to determine level
-
-### Common Values
-
-While any string value is permitted, the following common values are recommended for interoperability:
-- beginner
-- intermediate
-- advanced
-- elite
-- professional
-
-### Examples
-
-```jsx
-// Example 1: Basic fitness level
-Apply to App.jsx
-
-// Example 2: Activity-specific fitness level with metrics
-Apply to App.jsx
-```
-
-### Implementation Notes
-
-- Fitness level is subjective and may vary by activity
-- The activity tag can be used to specify fitness level for different activities
-- The metrics tag can provide objective measurements to support the fitness level
-- Clients can extend this format to include activity-specific fitness assessments
-- For general fitness apps, the simple beginner/intermediate/advanced scale is recommended
-
----
-
-## NIP-101h.6: Workout Intensity
-
-**Status:** Draft
-
-### Description
-
-This NIP defines the format for storing and sharing workout intensity data on Nostr.
-
-**Event Kind:** 1356
-
-### Content
-
-The content field contains a string representing the workout intensity, which can be:
-- A number from "1" to "10" when using Rate of Perceived Exertion (RPE) scale
-- One of the keywords: "low", "moderate", "high", or "max"
-
-### Required Tags
-
-- `['t', 'health']` - Categorization tag
-- `['t', 'intensity']` - Specific metric tag
-- `['scale', 'rpe10' or 'keyword']` - Scale used for intensity measurement
-
-### Optional Tags
-
-- `['timestamp', ISO8601-date]` - When the workout intensity was recorded
-- `['activity', activity-type]` - Specific activity the intensity relates to
-- `['zone', '1'-'5']` - Heart rate/intensity zone (if applicable)
-- `['source', application-name]` - The source of the measurement
-
-### Examples
-
-```json
-{
-  "kind": 1356,
-  "content": "8",
-  "tags": [
-    ["t", "health"],
-    ["t", "intensity"],
-    ["scale", "rpe10"],
-    ["activity", "running"],
-    ["timestamp", "2025-05-06T12:30:00Z"]
-  ]
-}
-```
-
-```json
-{
-  "kind": 1356,
-  "content": "high",
-  "tags": [
-    ["t", "health"],
-    ["t", "intensity"],
-    ["scale", "keyword"],
-    ["zone", "4"],
-    ["activity", "cycling"],
-    ["source", "TrainTrack"]
-  ]
-}
-```
-
-### Implementation Notes
-
-- The RPE scale (1-10) provides more granular intensity measurement
-- Keyword scale (low/moderate/high/max) is more approachable for general users
-- Heart rate zones can provide additional context when available from devices
-- Workout intensity is typically activity-specific and should include the activity tag when possible
-
----
-
-## NIP-101h.7: Caloric Data
-
-**Status:** Draft
-
-### Description
-
-This NIP defines the format for storing and sharing caloric data on Nostr, using two distinct kinds to differentiate between calories expended and calories consumed.
-
-### Common Structure for Both Kinds
-
-Both caloric data kinds share similar structure but serve different purposes.
-
-### Content
-
-For both kinds, the content field MUST contain the numeric caloric value as a string in kilocalories (kcal).
-
-### Required Tags for Both Kinds
-
-- `['unit', 'kcal']` - Unit of measurement
-- `['t', 'health']` - Categorization tag
-- `['t', 'calories']` - Specific metric tag
-
-### Optional Tags for Both Kinds
-
-- `['converted_value', value, 'kJ']` - Provides calories in kilojoules for interoperability
-- `['timestamp', ISO8601-date]` - When the caloric data was recorded
-- `['source', application-name]` - The source of the measurement
-- `['accuracy', 'estimated' or 'measured']` - Indicates how the caloric value was determined
-
-### Kind 1357: Calories Expended
-
-This kind specifically represents calories burned or expended through activity, exercise, or basal metabolism.
-
-**Event Kind:** 1357
-
-**Additional Optional Tags:**
-- `['activity', activity-type]` - Type of activity associated with the expenditure
-- `['duration', minutes]` - Duration of the activity in minutes
-- `['intensity', value]` - Reference to workout intensity (can link to a Kind 1356 event)
-
-**Examples:**
-```json
-{
-  "kind": 1357,
-  "content": "350",
-  "tags": [
-    ["unit", "kcal"],
-    ["t", "health"],
-    ["t", "calories"],
-    ["activity", "running"],
-    ["duration", "45"],
-    ["timestamp", "2025-05-06T18:45:00Z"],
-    ["accuracy", "estimated"]
-  ]
-}
-```
-
-### Kind 2357: Calories Consumed
-
-This kind specifically represents calories consumed through food and drink intake.
-
-**Event Kind:** 2357
-
-**Additional Optional Tags:**
-- `['meal', meal-type]` - Type of meal (breakfast, lunch, dinner, snack)
-- `['food', food-description]` - Description of the food consumed
-- `['macros', JSON-string]` - Breakdown of macronutrients (proteins, carbs, fats)
-
-**Examples:**
-```json
-{
-  "kind": 2357,
-  "content": "650",
-  "tags": [
-    ["unit", "kcal"],
-    ["t", "health"],
-    ["t", "calories"],
-    ["meal", "lunch"],
-    ["food", "Chicken salad with avocado"],
-    ["macros", "{\"protein\":35,\"carbs\":15,\"fat\":42}"],
-    ["timestamp", "2025-05-06T13:00:00Z"],
-    ["accuracy", "estimated"]
-  ]
-}
-```
-
-### Implementation Notes
-
-- Applications can subscribe to both kinds to calculate net caloric balance
-- Kilocalories (kcal) remains the canonical unit for all caloric data
-- The separation of expenditure and consumption allows for more targeted applications
-- Clients displaying caloric data should clearly distinguish between calories in (2357) and out (1357)
-- For basic implementations, the common required tags are sufficient
-- The additional optional tags allow for more detailed tracking and analysis
+- Gender SHOULD be represented as a string
+- Clients SHOULD consider encrypting this data
