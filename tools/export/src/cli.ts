@@ -47,8 +47,30 @@ export const cli = yargs(hideBin(process.argv))
         .alias('help', 'h')
         .version('0.1.0')
         .alias('version', 'v'),
-    () => {
-      // No-op for now; conversion logic will be implemented in future milestones
+    async (argv) => {
+      const { inputDir, to, out } = argv as unknown as {
+        inputDir: string;
+        to: string;
+        out?: string;
+      };
+
+      // Dynamically import heavy modules only when needed
+      if (to === 'csv') {
+        const { loadEventsFromDir } = await import('./loaders/jsonLoader.js');
+        const { writeCsv } = await import('./writers/csvWriter.js');
+        const events = await loadEventsFromDir(inputDir);
+        if (!events.length) {
+          console.error('No events found to export.');
+          process.exitCode = 1;
+          return;
+        }
+        const outputPath = out ?? 'events.csv';
+        await writeCsv(events, outputPath);
+        console.log(`Exported ${events.length} events to ${outputPath}`);
+      } else {
+        console.error(`Output format '${to}' not yet implemented.`);
+        process.exitCode = 1;
+      }
     },
   )
   .strict()
