@@ -14,7 +14,10 @@
   },
   "dependencies": {
     "yargs": "^17.7.2",
-    "fs-extra": "^11.2.0"
+    "fs-extra": "^11.2.0",
+    "ajv": "^8.12.0",
+    "better-sqlite3": "^9.0.2",
+    "nostr-tools": "^1.15.0"
   },
   "devDependencies": {
     "typescript": "^5.4.0",
@@ -23,6 +26,7 @@
     "@types/node": "^20.11.30",
     "execa": "^8.0.0",
     "@types/yargs": "^17.0.28",
-    "@types/fs-extra": "^11.0.4"
+    "@types/fs-extra": "^11.0.4",
+    "@types/better-sqlite3": "^7.6.6"
   }
 } 

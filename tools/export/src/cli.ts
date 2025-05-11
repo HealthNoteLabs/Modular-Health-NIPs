@@ -58,9 +58,29 @@ export const cli = yargs(hideBin(process.argv))
       if (to === 'csv') {
         const { loadEventsFromDir } = await import('./loaders/jsonLoader.js');
         const { writeCsv } = await import('./writers/csvWriter.js');
-        const events = await loadEventsFromDir(inputDir);
+        const { validateEvents } = await import('./validator/validate.js');
+        let events = await loadEventsFromDir(inputDir);
+        if (argv.decrypt) {
+          const { decryptEvents } = await import('./utils/decrypt.js');
+          if (!argv.privkey) {
+            console.error('--decrypt specified but --privkey missing');
+            process.exitCode = 1;
+            return;
+          }
+          await decryptEvents(events, String(argv.privkey));
+          if (argv['strip-pii']) {
+            const { stripPii } = await import('./utils/strip.js');
+            stripPii(events);
+          }
+        }
         if (!events.length) {
           console.error('No events found to export.');
+          process.exitCode = 1;
+          return;
+        }
+        const validation = validateEvents(events);
+        if (!validation.valid) {
+          console.error(`Validation failed for ${validation.errorCount} event(s). Aborting export.`);
           process.exitCode = 1;
           return;
         }
@@ -68,6 +88,76 @@ export const cli = yargs(hideBin(process.argv))
         await writeCsv(events, outputPath);
         console.log(`Exported ${events.length} events to ${outputPath}`);
       } else {
+        if (to === 'sqlite') {
+          const { loadEventsFromDir } = await import('./loaders/jsonLoader.js');
+          const { writeSqlite } = await import('./writers/sqliteWriter.js');
+          const { validateEvents } = await import('./validator/validate.js');
+
+          let events = await loadEventsFromDir(inputDir);
+          if (argv.decrypt) {
+            const { decryptEvents } = await import('./utils/decrypt.js');
+            if (!argv.privkey) {
+              console.error('--decrypt specified but --privkey missing');
+              process.exitCode = 1;
+              return;
+            }
+            await decryptEvents(events, String(argv.privkey));
+            if (argv['strip-pii']) {
+              const { stripPii } = await import('./utils/strip.js');
+              stripPii(events);
+            }
+          }
+          if (!events.length) {
+            console.error('No events found to export.');
+            process.exitCode = 1;
+            return;
+          }
+          const validation = validateEvents(events);
+          if (!validation.valid) {
+            console.error(`Validation failed for ${validation.errorCount} event(s). Aborting export.`);
+            process.exitCode = 1;
+            return;
+          }
+          const outputPath = out ?? 'events.sqlite';
+          await writeSqlite(events, outputPath);
+          console.log(`Exported ${events.length} events to ${outputPath}`);
+          return;
+        }
+        if (to === 'blossom') {
+          const { loadEventsFromDir } = await import('./loaders/jsonLoader.js');
+          const { writeBlossom } = await import('./writers/blossomWriter.js');
+          const { validateEvents } = await import('./validator/validate.js');
+
+          let events = await loadEventsFromDir(inputDir);
+          if (argv.decrypt) {
+            const { decryptEvents } = await import('./utils/decrypt.js');
+            if (!argv.privkey) {
+              console.error('--decrypt specified but --privkey missing');
+              process.exitCode = 1;
+              return;
+            }
+            await decryptEvents(events, String(argv.privkey));
+            if (argv['strip-pii']) {
+              const { stripPii } = await import('./utils/strip.js');
+              stripPii(events);
+            }
+          }
+          if (!events.length) {
+            console.error('No events found to export.');
+            process.exitCode = 1;
+            return;
+          }
+          const validation = validateEvents(events);
+          if (!validation.valid) {
+            console.error(`Validation failed for ${validation.errorCount} event(s). Aborting export.`);
+            process.exitCode = 1;
+            return;
+          }
+          const outputPath = out ?? 'events.blossom.json';
+          await writeBlossom(events, outputPath);
+          console.log(`Exported ${events.length} events to ${outputPath}`);
+          return;
+        }
         console.error(`Output format '${to}' not yet implemented.`);
         process.exitCode = 1;
       }
