@@ -5,7 +5,7 @@
 
 ## Abstract
 
-This NIP defines a framework for storing and sharing health and fitness profile data on Nostr. It establishes a set of standardized event kinds for individual health metrics, allowing applications to selectively access specific health information while preserving user control and privacy.
+This NIP defines a framework for storing and sharing health and fitness profile data on Nostr. It establishes a set of standardized event kinds for individual health metrics, organized by category, allowing applications to selectively access specific health information while preserving user control and privacy.
 
 In this framework exists
 - NIP-101h.1 Weight using kind 1351 
@@ -19,7 +19,6 @@ In this framework exists
 - NIP-101h.9 Step Count using kind 1359
 - NIP-101h.10 Elevation using kind 1360
 
-
 ## Motivation
 
 I want to build and support an ecosystem of health and fitness related nostr clients that have the ability to share and utilize a bunch of specific interoperable health metrics. 
@@ -29,49 +28,86 @@ I want to build and support an ecosystem of health and fitness related nostr cli
 - **Interoperability** - Different health applications can share data
 - **Privacy** - Sensitive health information can be managed independently
 
+## Framework Structure: Categories and Subcategories
+
+To ensure scalability, discoverability, and privacy, all health metrics are organized into top-level categories and, where appropriate, subcategories. Each metric kind is assigned within a category range, and all events must include a `category` tag. This structure supports filtering, permissions, and future extensibility.
+
+### Example Top-Level Categories
+- **Anthropometrics** (e.g., weight, height, BMI)
+- **Activity & Fitness** (e.g., step count, distance, workout intensity)
+- **Nutrition & Diet** (e.g., calories, macronutrients, water intake)
+- **Sleep** (e.g., total sleep, REM, sleep quality)
+- **Mental Health & Mindfulness** (e.g., mood, stress, meditation)
+- **Medical & Biometrics** (e.g., blood pressure, heart rate, glucose)
+- **Lifestyle & Environment** (e.g., alcohol, caffeine, screen time)
+
+Each category is assigned a kind number range (e.g., 1351–1369 for Anthropometrics, 1370–1389 for Activity, etc.). See the table below for current assignments.
+
 ## Specification
 
-### Kind Number Range
+### Kind Number Ranges by Category
 
-Health profile metrics use the kind number range 1351-1399 for primary metrics, with secondary kinds in the 2351-2399 range for related pairs (like calorie expenditure/intake):
+| Kind Range   | Category                  |
+| ------------ | ------------------------- |
+| 1351–1369    | Anthropometrics           |
+| 1370–1389    | Activity & Fitness        |
+| 1390–1409    | Nutrition & Diet          |
+| 1410–1429    | Sleep                     |
+| 1430–1449    | Mental Health & Mindfulness |
+| 1450–1469    | Medical & Biometrics      |
+| 1470–1489    | Lifestyle & Environment   |
+| 1490–1499    | Reserved for future use   |
+| 2351–2399    | Paired/secondary metrics  |
 
-| Kind      | Metric                             |
-| --------- | ---------------------------------- |
-| 1351      | Weight                             |
-| 1352      | Height                             |
-| 1353      | Age                                |
-| 1354      | Gender                             |
-| 1355      | Fitness Level                      |
-| 1356      | Workout Intensity                  |
-| 1357      | Calories Expended                  |
-| 2357      | Calories Consumed                  |
-| 1358      | Activity Duration                  |
-| 1359      | Step Count                         |
-| 1360      | Elevation                          |
-| 1361-1399 | Reserved for future health metrics |
-| 2358-2399 | Reserved for paired health metrics |
+### Common Event Structure
 
-### Common Structure
+All health metric events MUST follow these guidelines:
 
-All health metric events SHOULD follow these guidelines:
-
-- The content field contains the primary value of the metric
+- The `content` field contains the primary value of the metric (as a string; encrypted if NIP-44 is used)
 - Required tags:
   - `['t', 'health']` - For categorizing as health data
   - `['t', metric-specific-tag]` - For identifying the specific metric
+  - `['category', category-name]` - The top-level category (e.g., 'anthropometrics')
   - `['unit', unit-of-measurement]` - When applicable
 - Optional tags:
+  - `['subcategory', subcategory-name]` - For finer granularity
   - `['converted_value', value, unit]` - For providing alternative unit measurements
   - `['timestamp', ISO8601-date]` - When the metric was measured
   - `['source', application-name]` - The source of the measurement
+  - `['encryption_algo', 'nip44']` and `['p', <receiver_pubkey>]` - If NIP-44 encryption is used
+  - `['encrypted', 'true'/'false']` - Explicit encryption status (optional)
+  - `['version', '1']` - For future versioning (optional)
+
+#### Canonical Event Example
+
+```json
+{
+  "kind": 1351,
+  "content": "70", // or encrypted string
+  "tags": [
+    ["t", "health"],
+    ["t", "weight"],
+    ["category", "anthropometrics"],
+    ["unit", "kg"],
+    ["timestamp", "2025-05-01T10:00:00Z"],
+    ["source", "RunstrApp"],
+    ["converted_value", "154", "lb"],
+    ["encryption_algo", "nip44"],
+    ["p", "receiver_pubkey"]
+  ],
+  "created_at": 1672531200,
+  "pubkey": "...",
+  "id": "...",
+  "sig": "..."
+}
+```
 
 ### Unit Handling
 
-Health metrics often have multiple ways to be measured. To ensure interoperability:
-
-- Where multiple units are possible, one standard unit SHOULD be chosen as canonical
-- When using non-standard units, a `converted_value` tag SHOULD be included with the canonical unit
-- Both the original and converted values should be provided for maximum compatibility
+- Each metric MUST specify a canonical unit (e.g., kg for weight, cm for height).
+- If alternate units are used, include both the original and canonical via `converted_value`.
+- Use strings for all values in `content` for consistency and to support encryption.
+- For complex values (e.g., imperial height), use a JSON string in `content`.
 
 ### Client Implementation Guidelines
 
@@ -83,6 +119,7 @@ Clients implementing this NIP SHOULD:
 - Support updating metrics with new values over time
 - Preserve tags they don't understand for future compatibility
 - Support at least the canonical unit for each metric
+- Filter, group, and request metrics by category and subcategory
 
 ### Extensions
 
@@ -91,9 +128,9 @@ New health metrics can be proposed as extensions to this NIP using the format:
 - NIP-101h.X where X is the metric number
 
 Each extension MUST specify:
-- A unique kind number in the range 1351-1399 (or 2351-2399 for paired metrics)
+- A unique kind number in the appropriate category range (see above)
 - The content format and meaning
-- Required and optional tags
+- Required and optional tags (including `category`)
 - Examples of valid events
 
 ## Privacy Considerations
@@ -103,7 +140,7 @@ Health data is sensitive personal information. Clients implementing this NIP SHO
 - Make it clear to users when health data is being published
 - **Strongly consider defaulting to NIP-44 encryption for the `content` of all health metric events. An option to publish unencrypted data may be provided but should require explicit user consent per event or per metric type.**
 - Consider incorporating NIP-44 encryption for sensitive metrics
-- Allow users to selectively share metrics with specific individuals
+- Allow users to selectively share metrics with specific individuals or by category
 - Provide easy ways to delete previously published health data
 
 ## Data Export (e.g., for Blossom)
@@ -168,6 +205,177 @@ CSV export requires a flattened structure. A recommended approach is to have com
 -   For encrypted content, the `value` field in the CSV might be an empty string, a placeholder like "[encrypted]", or the encrypted string itself, depending on the use case. The `encrypted` column explicitly states the encryption status.
 -   Additional tags from the Nostr event can be added as extra columns (e.g., `activity`, `period`, `goal` as shown above).
 -   The specific columns included in a CSV export can be tailored to the application or user's needs. Individual NIP-101h.X specifications may provide more tailored CSV column suggestions if particular tags are common for that metric.
+
+## Versioning Policy
+
+All NIP-101h events MUST include a version tag: `['version', '1']`. This enables future upgrades and backward compatibility. If breaking changes are introduced, the version number will be incremented, and clients should handle events based on the version tag.
+
+## Canonical Tag Registry
+
+| Tag Name         | Required | Description                                                      |
+|------------------|----------|------------------------------------------------------------------|
+| t                | Yes      | Category and metric-specific tags (e.g., 'health', 'weight')     |
+| category         | Yes      | Top-level category (e.g., 'anthropometrics')                     |
+| subcategory      | No       | Subcategory for finer granularity (e.g., 'macronutrients')       |
+| unit             | Yes      | Canonical unit of measurement (e.g., 'kg', 'bpm')                |
+| converted_value  | No       | Alternate value and unit (e.g., ['converted_value', '154', 'lb'])|
+| timestamp        | No       | ISO8601 date/time of measurement                                 |
+| source           | No       | Originating app/device                                           |
+| encryption_algo  | No       | Encryption algorithm used (e.g., 'nip44')                        |
+| p                | No       | Receiver pubkey for encryption                                   |
+| encrypted        | No       | Explicit encryption status ('true'/'false')                      |
+| version          | Yes      | Protocol version (e.g., '1')                                     |
+| consent          | No       | Privacy/consent scope ('public', 'private', 'shared-with:<pubkey>') |
+| lang             | No       | Language code for i18n (e.g., 'en')                              |
+| e                | No       | Event reference for linking/threading                            |
+| dob              | No       | Date of birth (for age metric)                                   |
+
+Clients MUST ignore unknown tags and SHOULD preserve them when relaying events.
+
+## Privacy and Consent Tags
+
+To support user privacy and explicit consent, events MAY include a `['consent', 'public'|'private'|'shared-with:<pubkey>']` tag. This tag indicates the intended audience for the event:
+- `public`: Anyone may access the event.
+- `private`: Only the user or explicitly authorized parties may access the event.
+- `shared-with:<pubkey>`: Only the specified public key(s) may access the event.
+
+Clients SHOULD respect the consent tag and provide clear UI for users to set consent per event or per metric type.
+
+## Event Validation Schema
+
+A JSON Schema for NIP-101h events is provided to ensure interoperability and reduce ambiguity. Clients and SDKs SHOULD validate events against this schema.
+
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "NIP-101h Health Metric Event",
+  "type": "object",
+  "required": ["kind", "content", "tags", "created_at", "pubkey", "id", "sig"],
+  "properties": {
+    "kind": {"type": "integer"},
+    "content": {"type": "string"},
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "minItems": 2,
+        "items": {"type": "string"}
+      }
+    },
+    "created_at": {"type": "integer"},
+    "pubkey": {"type": "string"},
+    "id": {"type": "string"},
+    "sig": {"type": "string"}
+  }
+}
+```
+
+## Example Events
+
+### 1. Basic Weight Event (Public, Unencrypted)
+```json
+{
+  "kind": 1351,
+  "content": "70",
+  "tags": [
+    ["t", "health"],
+    ["t", "weight"],
+    ["category", "anthropometrics"],
+    ["unit", "kg"],
+    ["timestamp", "2025-05-01T10:00:00Z"],
+    ["source", "RunstrApp"],
+    ["version", "1"],
+    ["consent", "public"]
+  ],
+  "created_at": 1672531200,
+  "pubkey": "...",
+  "id": "...",
+  "sig": "..."
+}
+```
+
+### 2. Encrypted Step Count Event (Shared with Specific User)
+```json
+{
+  "kind": 1359,
+  "content": "<encrypted-string>",
+  "tags": [
+    ["t", "health"],
+    ["t", "step_count"],
+    ["category", "activity & fitness"],
+    ["unit", "steps"],
+    ["timestamp", "2025-05-01T23:59:59Z"],
+    ["source", "DeviceA"],
+    ["encryption_algo", "nip44"],
+    ["p", "receiver_pubkey"],
+    ["version", "1"],
+    ["consent", "shared-with:npub1...xyz"]
+  ],
+  "created_at": 1672531205,
+  "pubkey": "...",
+  "id": "...",
+  "sig": "..."
+}
+```
+
+### 3. Nutrition Event with Subcategory and Alternate Unit
+```json
+{
+  "kind": 1391,
+  "content": "2000",
+  "tags": [
+    ["t", "health"],
+    ["t", "calories_consumed"],
+    ["category", "nutrition & diet"],
+    ["subcategory", "macronutrients"],
+    ["unit", "kcal"],
+    ["converted_value", "8374", "kJ"],
+    ["timestamp", "2025-05-01T20:00:00Z"],
+    ["source", "FoodTrackerApp"],
+    ["version", "1"],
+    ["consent", "private"]
+  ],
+  "created_at": 1672531210,
+  "pubkey": "...",
+  "id": "...",
+  "sig": "..."
+}
+```
+
+### 4. Event with Unknown/Extension Tags (Forward Compatibility)
+```json
+{
+  "kind": 1451,
+  "content": "120/80",
+  "tags": [
+    ["t", "health"],
+    ["t", "blood_pressure"],
+    ["category", "medical & biometrics"],
+    ["unit", "mmHg"],
+    ["timestamp", "2025-05-01T08:00:00Z"],
+    ["source", "BPMonitor"],
+    ["version", "1"],
+    ["consent", "public"],
+    ["custom_tag", "custom_value"]
+  ],
+  "created_at": 1672531220,
+  "pubkey": "...",
+  "id": "...",
+  "sig": "..."
+}
+```
+
+## Error Handling and Unknown Tags
+
+Clients MUST ignore unknown tags and SHOULD preserve them when relaying or exporting events. This ensures forward compatibility and allows for future extensions without breaking existing implementations.
+
+## Security Considerations
+
+- **Replay Attacks:** Clients should check timestamps and event IDs to prevent replaying old or duplicate events.
+- **Fake Data:** Applications should provide ways for users to verify the source of data (e.g., trusted pubkeys, app signatures).
+- **Encryption:** Sensitive data SHOULD be encrypted using NIP-44. The `encryption_algo` and `p` tags must be present for encrypted events.
+- **Consent Enforcement:** Apps and relays SHOULD respect the `consent` tag and not expose private/shared data to unauthorized parties.
+- **Data Deletion:** Users should have the ability to delete or revoke previously published health data.
 
 ---
 
