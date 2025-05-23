@@ -18,8 +18,9 @@ The content field MUST contain the numeric distance value as a string.
 
 ## Optional Tags
 - [`activity_type`, string] - Type of activity (e.g., "running", "cycling", "swimming", "walking")
-- [`total_activity_distance`, boolean string (`true`|`false`)] - Indicates if this distance is the total for an activity or a segment.
-- [`segment_number`, positive integer string] - If part of a segmented activity, the segment number.
+- [`segment_type`, `total` | `part`] - Indicates whether this entry is the total distance for the activity (`total`) or a segment/lap (`part`).
+- [`segment_number`, positive integer string] - If `segment_type` is `part`, the ordinal number of the segment.
+- [`target_distance`, numeric-string, unit-string] - A distance goal associated with this activity or segment.
 - [`timestamp`, ISO8601 date] - When the distance was recorded or the activity segment concluded
 - [`source`, application-name or device-name] - The source of the measurement
 - [`accuracy`, `estimate` | `accurate` | `exact`] - Data accuracy, defaults to 'estimate'
@@ -37,7 +38,9 @@ The content field MUST contain the numeric distance value as a string.
     ["t", "distance"],
     ["category", "activity & fitness"],
     ["activity_type", "running"],
-    ["total_activity_distance", "true"],
+    ["segment_type", "total"],
+    ["segment_number", "1"],
+    ["target_distance", "10.5", "km"],
     ["timestamp", "2025-06-10T10:00:00Z"],
     ["accuracy", "accurate"],
     ["status", "active"],
@@ -45,27 +48,3 @@ The content field MUST contain the numeric distance value as a string.
   ]
 }
 ```
-
-```json
-{
-  "kind": 1363,
-  "content": "1500",
-  "tags": [
-    ["unit", "m"],
-    ["t", "health"],
-    ["t", "distance"],
-    ["category", "activity & fitness"],
-    ["activity_type", "swimming"],
-    ["source", "GarminWatch"],
-    ["accuracy", "estimate"],
-    ["status", "active"],
-    ["version", "1"]
-  ]
-}
-```
-
-### Privacy Notes
-- As with all NIP-101h metrics, client implementations SHOULD default to encrypting the event content using NIP-44, offering an explicit option for unencrypted publishing.
-
-### Known Client Implementations
-- (To be added) 

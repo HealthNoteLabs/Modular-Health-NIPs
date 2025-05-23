@@ -27,6 +27,7 @@ So, for 5 minutes 30 seconds per km, content is "330" and unit tag would be `["p
 - [`accuracy`, `estimate` | `accurate` | `exact`] - Data accuracy, defaults to 'estimate'
 - [`status`, `active` | `deleted` | `invalid`] - Status of the note, defaults to 'active'
 - [`version`, `1`] - Protocol version
+- [`target_pace`, numeric string] - Target pace for the segment or overall, represented in the same `pace_unit` as this event
 
 ## Examples
 ```json

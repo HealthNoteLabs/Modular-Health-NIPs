@@ -70,6 +70,8 @@ This kind specifically represents calories consumed through food and drink intak
 - `['meal', meal-type]` - Type of meal (breakfast, lunch, dinner, snack)
 - `['food', food-description]` - Description of the food consumed
 - `['macros', JSON-string]` - Breakdown of macronutrients (proteins, carbs, fats)
+- `['brand_name', string]` - Brand or restaurant name, if applicable (e.g., "Starbucks", "Homemade")
+- `['serving_size', numeric-string, unit-string]` - Serving size for the portion consumed (e.g., "1", "cup")
 
 **Examples:**
 ```json
@@ -83,6 +85,8 @@ This kind specifically represents calories consumed through food and drink intak
     ["meal", "lunch"],
     ["food", "Chicken salad with avocado"],
     ["macros", "{\"protein\":35,\"carbs\":15,\"fat\":42}"],
+    ["brand_name", "Starbucks"],
+    ["serving_size", "1", "cup"],
     ["timestamp", "2025-05-06T13:00:00Z"],
     ["accuracy", "estimate"],
     ["status", "active"]

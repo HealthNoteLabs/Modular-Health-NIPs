@@ -25,6 +25,7 @@ The content field MUST contain the numeric duration of the split in seconds, as 
 - [`accuracy`, `estimate` | `accurate` | `exact`] - Data accuracy, defaults to 'estimate'
 - [`status`, `active` | `deleted` | `invalid`] - Status of the note, defaults to 'active'
 - [`version`, `1`] - Protocol version
+- [`cumulative_time`, numeric string] - Cumulative time elapsed up to the end of this split (in the same `unit` as content)
 
 ## Examples
 ```json

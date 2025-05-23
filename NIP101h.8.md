@@ -22,7 +22,6 @@ The content field MUST contain the numeric duration value as a string. The unit 
 - `['end_time', ISO8601-date]` - When the activity ended.
 - `['source', application-name]` - The source of the measurement (e.g., "FitTrackerApp", "SmartWatchXYZ").
 - `['related_event', event-id]` - To link to another event, e.g., a detailed workout event (NIP-101e).
-- `['activity_type', string]` - Specific type of activity (e.g., "running", "sleep", "meeting")
 - `['accuracy', 'estimate' | 'accurate' | 'exact']` - Data accuracy, defaults to 'estimate'
 - `['status', 'active' | 'deleted' | 'invalid']` - Status of the note, defaults to 'active'
 

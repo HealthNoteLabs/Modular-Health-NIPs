@@ -76,7 +76,15 @@ All health metric events MUST follow these guidelines:
   - `['subcategory', subcategory-name]` - For finer granularity
   - `['converted_value', value, unit]` - For providing alternative unit measurements
   - `['timestamp', ISO8601-date]` - When the metric was measured
-  - `['source', application-name]` - The source of the measurement
+  - `['source', application-name]` - The software client or application that generated the event (e.g., "RunstrApp")
+  - `['device', device-name]` - The physical hardware that measured the data (e.g., "Fitbit Inspire 3")
+  - `['entry_method', 'manual' | 'automated_device' | 'automated_app' | 'user_edited']` - How the data entered the system  
+    - `manual`: user typed the value  
+    - `automated_device`: synced directly from a hardware device  
+    - `automated_app`: calculated or imported automatically by an app/service  
+    - `user_edited`: user later edited or corrected the value
+  - `['note', free-text]` - Short user note providing extra context (e.g., "Felt fatigued", "race day")
+  - `['goal', value, unit]` - Target or goal associated with this metric (e.g., `['goal','10000','steps']`).  Clients MAY ignore if not applicable.
   - `['encryption_algo', 'nip44']` and `['p', <receiver_pubkey>]` - If NIP-44 encryption is used
   - `['encrypted', 'true'/'false']` - Explicit encryption status (optional)
   - `['version', '1']` - For future versioning (optional)
@@ -96,6 +104,10 @@ All health metric events MUST follow these guidelines:
     ["unit", "kg"],
     ["timestamp", "2025-05-01T10:00:00Z"],
     ["source", "RunstrApp"],
+    ["device", "Fitbit Inspire 3"],
+    ["entry_method", "manual"],
+    ["note", ""],
+    ["goal", "", "steps"],
     ["converted_value", "154", "lb"],
     ["encryption_algo", "nip44"],
     ["p", "receiver_pubkey"],
@@ -167,6 +179,11 @@ When exporting multiple NIP-101h events as JSON, the output SHOULD be an array o
       ["t", "health"],
       ["t", "weight"],
       ["timestamp", "2025-05-01T10:00:00Z"],
+      ["source", "RunstrApp"],
+      ["device", "Fitbit Inspire 3"],
+      ["entry_method", "manual"],
+      ["note", ""],
+      ["goal", "", "steps"],
       ["accuracy", "estimate"],
       ["status", "active"]
     ],
@@ -183,6 +200,11 @@ When exporting multiple NIP-101h events as JSON, the output SHOULD be an array o
       ["t", "health"],
       ["t", "height"],
       ["timestamp", "2025-05-01T10:00:00Z"],
+      ["source", "RunstrApp"],
+      ["device", "Fitbit Inspire 3"],
+      ["entry_method", "manual"],
+      ["note", ""],
+      ["goal", "", "cm"],
       ["accuracy", "estimate"],
       ["status", "active"]
     ],
@@ -200,13 +222,14 @@ If NIP-44 encryption was used for the original event, the `content` field in the
 ### CSV Export
 CSV export requires a flattened structure. A recommended approach is to have common columns and then metric-specific columns. Clients or export tools will need to decide on a consistent set of columns for a given export.
 
-**Common Columns:** `id`, `kind`, `created_at`, `pubkey`, `metric_type`, `timestamp`, `unit`, `value`, `source`, `encrypted (true/false)`, `accuracy`, `status`
+**Common Columns:** `id`, `kind`, `created_at`, `pubkey`, `metric_type`, `timestamp`, `unit`, `value`, `source`, `device`, `entry_method`, `note`, `goal`, `encrypted (true/false)`, `accuracy`, `status`
 
 **Example CSV Structure (conceptual):**
 
-`id,kind,created_at,pubkey,metric_type,timestamp,unit,value,activity,period,goal,source,encrypted,accuracy,status`
-`event_id1,1351,1672531200,pubkey1,weight,2025-05-01T10:00:00Z,kg,70,,,RunstrApp,true,estimate,active`
-`event_id2,1359,1672531205,pubkey1,step_count,2025-05-01T23:59:59Z,steps,10520,,daily,10000,DeviceA,true,estimate,active`
+`id,kind,created_at,pubkey,metric_type,timestamp,unit,value,source,device,entry_method,note,goal,activity,period,goal,source,encrypted,accuracy,status`
+`id,kind,created_at,pubkey,metric_type,timestamp,unit,value,source,device,entry_method,note,goal,activity,period,encrypted,accuracy,status`
+`event_id1,1351,1672531200,pubkey1,weight,2025-05-01T10:00:00Z,kg,70,,,RunstrApp,Fitbit Inspire 3,manual,,,daily,10000,DeviceA,true,estimate,active`
+`event_id2,1359,1672531205,pubkey1,step_count,2025-05-01T23:59:59Z,steps,10520,,,RunstrApp,Fitbit Inspire 3,manual,,,10000,DeviceA,true,estimate,active`
 
 **Notes for CSV Export:**
 -   The `value` column would store the primary content of the NIP-101h event.
@@ -229,7 +252,11 @@ All NIP-101h events MUST include a version tag: `['version', '1']`. This enables
 | unit             | Yes      | Canonical unit of measurement (e.g., 'kg', 'bpm')                |
 | converted_value  | No       | Alternate value and unit (e.g., ['converted_value', '154', 'lb'])|
 | timestamp        | No       | ISO8601 date/time of measurement                                 |
-| source           | No       | Originating app/device                                           |
+| source           | No       | Originating software client or application                       |
+| device           | No       | Hardware device that recorded the metric (e.g., "Garmin 945")       |
+| entry_method     | No       | `manual`, `automated_device`, `automated_app`, `user_edited`     |
+| note             | No       | Free-form user note                                              |
+| goal             | No       | Target value for the metric (when applicable)                    |
 | encryption_algo  | No       | Encryption algorithm used (e.g., 'nip44')                        |
 | p                | No       | Receiver pubkey for encryption                                   |
 | encrypted        | No       | Explicit encryption status ('true'/'false')                      |
@@ -295,6 +322,10 @@ A JSON Schema for NIP-101h events is provided to ensure interoperability and red
     ["unit", "kg"],
     ["timestamp", "2025-05-01T10:00:00Z"],
     ["source", "RunstrApp"],
+    ["device", "Fitbit Inspire 3"],
+    ["entry_method", "manual"],
+    ["note", ""],
+    ["goal", "", "steps"],
     ["version", "1"],
     ["consent", "public"],
     ["accuracy", "estimate"],
@@ -319,6 +350,10 @@ A JSON Schema for NIP-101h events is provided to ensure interoperability and red
     ["unit", "steps"],
     ["timestamp", "2025-05-01T23:59:59Z"],
     ["source", "DeviceA"],
+    ["device", "Fitbit Inspire 3"],
+    ["entry_method", "automated_device"],
+    ["note", ""],
+    ["goal", "", "steps"],
     ["encryption_algo", "nip44"],
     ["p", "receiver_pubkey"],
     ["version", "1"],
@@ -347,6 +382,10 @@ A JSON Schema for NIP-101h events is provided to ensure interoperability and red
     ["converted_value", "8374", "kJ"],
     ["timestamp", "2025-05-01T20:00:00Z"],
     ["source", "FoodTrackerApp"],
+    ["device", "Fitbit Inspire 3"],
+    ["entry_method", "automated_app"],
+    ["note", ""],
+    ["goal", "", "kcal"],
     ["version", "1"],
     ["consent", "private"],
     ["accuracy", "estimate"],
@@ -371,6 +410,10 @@ A JSON Schema for NIP-101h events is provided to ensure interoperability and red
     ["unit", "mmHg"],
     ["timestamp", "2025-05-01T08:00:00Z"],
     ["source", "BPMonitor"],
+    ["device", "Garmin 945"],
+    ["entry_method", "manual"],
+    ["note", ""],
+    ["goal", "", "mmHg"],
     ["version", "1"],
     ["consent", "public"],
     ["custom_tag", "custom_value"],
