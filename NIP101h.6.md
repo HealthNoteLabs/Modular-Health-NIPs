@@ -26,6 +26,9 @@ The content field contains a string representing the workout intensity, which ca
 - `['activity', activity-type]` - Specific activity the intensity relates to
 - `['zone', '1'-'5']` - Heart rate/intensity zone (if applicable)
 - `['source', application-name]` - The source of the measurement
+- `['perceived_exertion_scale', string]` - Scale used for perceived exertion (e.g., "RPE 1-10", "Borg CR10")
+- `['accuracy', estimate | accurate | exact]` - Data accuracy, defaults to 'estimate'
+- `['status', active | deleted | invalid]` - Status of the note, defaults to 'active'
 
 ### Examples
 

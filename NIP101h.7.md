@@ -25,7 +25,11 @@ For both kinds, the content field MUST contain the numeric caloric value as a st
 - `['converted_value', value, 'kJ']` - Provides calories in kilojoules for interoperability
 - `['timestamp', ISO8601-date]` - When the caloric data was recorded
 - `['source', application-name]` - The source of the measurement
-- `['accuracy', 'estimated' or 'measured']` - Indicates how the caloric value was determined
+- `['accuracy', 'estimate' | 'accurate' | 'exact']` - Data accuracy, defaults to 'estimate'
+- `['status', 'active' | 'deleted' | 'invalid']` - Status of the note, defaults to 'active'
+- `['activity', string]` - Specific activity if calories expended (e.g., "running", "cycling")
+- `['food_item', string]` - Specific food item if calories consumed
+- `['meal_type', string]` - e.g., "breakfast", "lunch", "dinner", "snack"
 
 ### Kind 1357: Calories Expended
 
@@ -50,7 +54,8 @@ This kind specifically represents calories burned or expended through activity, 
     ["activity", "running"],
     ["duration", "45"],
     ["timestamp", "2025-05-06T18:45:00Z"],
-    ["accuracy", "estimated"]
+    ["accuracy", "estimate"],
+    ["status", "active"]
   ]
 }
 ```
@@ -79,7 +84,8 @@ This kind specifically represents calories consumed through food and drink intak
     ["food", "Chicken salad with avocado"],
     ["macros", "{\"protein\":35,\"carbs\":15,\"fat\":42}"],
     ["timestamp", "2025-05-06T13:00:00Z"],
-    ["accuracy", "estimated"]
+    ["accuracy", "estimate"],
+    ["status", "active"]
   ]
 }
 ```

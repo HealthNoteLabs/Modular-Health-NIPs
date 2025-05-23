@@ -18,6 +18,9 @@ In this framework exists
 - NIP-101h.8 Activity Duration using kind 1358
 - NIP-101h.9 Step Count using kind 1359
 - NIP-101h.10 Elevation using kind 1360
+- NIP-101h.11 Splits using kind 1361
+- NIP-101h.12 Pace using kind 1362
+- NIP-101h.13 Distance using kind 1363
 
 ## Motivation
 
@@ -77,6 +80,8 @@ All health metric events MUST follow these guidelines:
   - `['encryption_algo', 'nip44']` and `['p', <receiver_pubkey>]` - If NIP-44 encryption is used
   - `['encrypted', 'true'/'false']` - Explicit encryption status (optional)
   - `['version', '1']` - For future versioning (optional)
+  - `['accuracy', 'estimate' | 'accurate' | 'exact']` - Data accuracy, defaults to 'estimate'
+  - `['status', 'active' | 'deleted' | 'invalid']` - Status of the note, defaults to 'active'
 
 #### Canonical Event Example
 
@@ -93,7 +98,9 @@ All health metric events MUST follow these guidelines:
     ["source", "RunstrApp"],
     ["converted_value", "154", "lb"],
     ["encryption_algo", "nip44"],
-    ["p", "receiver_pubkey"]
+    ["p", "receiver_pubkey"],
+    ["accuracy", "estimate"],
+    ["status", "active"]
   ],
   "created_at": 1672531200,
   "pubkey": "...",
@@ -159,8 +166,9 @@ When exporting multiple NIP-101h events as JSON, the output SHOULD be an array o
       ["unit", "kg"],
       ["t", "health"],
       ["t", "weight"],
-      ["timestamp", "2025-05-01T10:00:00Z"]
-      // other relevant tags, including NIP-44 tags if encrypted
+      ["timestamp", "2025-05-01T10:00:00Z"],
+      ["accuracy", "estimate"],
+      ["status", "active"]
     ],
     "created_at": 1672531200,
     "pubkey": "...",
@@ -174,8 +182,9 @@ When exporting multiple NIP-101h events as JSON, the output SHOULD be an array o
       ["unit", "cm"],
       ["t", "health"],
       ["t", "height"],
-      ["timestamp", "2025-05-01T10:00:00Z"]
-      // other relevant tags
+      ["timestamp", "2025-05-01T10:00:00Z"],
+      ["accuracy", "estimate"],
+      ["status", "active"]
     ],
     "created_at": 1672531201,
     "pubkey": "...",
@@ -191,13 +200,13 @@ If NIP-44 encryption was used for the original event, the `content` field in the
 ### CSV Export
 CSV export requires a flattened structure. A recommended approach is to have common columns and then metric-specific columns. Clients or export tools will need to decide on a consistent set of columns for a given export.
 
-**Common Columns:** `id`, `kind`, `created_at`, `pubkey`, `metric_type`, `timestamp`, `unit`, `value`, `source`, `encrypted (true/false)`
+**Common Columns:** `id`, `kind`, `created_at`, `pubkey`, `metric_type`, `timestamp`, `unit`, `value`, `source`, `encrypted (true/false)`, `accuracy`, `status`
 
 **Example CSV Structure (conceptual):**
 
-`id,kind,created_at,pubkey,metric_type,timestamp,unit,value,activity,period,goal,source,encrypted`
-`event_id1,1351,1672531200,pubkey1,weight,2025-05-01T10:00:00Z,kg,70,,,RunstrApp,true`
-`event_id2,1359,1672531205,pubkey1,step_count,2025-05-01T23:59:59Z,steps,10520,,daily,10000,DeviceA,true`
+`id,kind,created_at,pubkey,metric_type,timestamp,unit,value,activity,period,goal,source,encrypted,accuracy,status`
+`event_id1,1351,1672531200,pubkey1,weight,2025-05-01T10:00:00Z,kg,70,,,RunstrApp,true,estimate,active`
+`event_id2,1359,1672531205,pubkey1,step_count,2025-05-01T23:59:59Z,steps,10520,,daily,10000,DeviceA,true,estimate,active`
 
 **Notes for CSV Export:**
 -   The `value` column would store the primary content of the NIP-101h event.
@@ -229,6 +238,8 @@ All NIP-101h events MUST include a version tag: `['version', '1']`. This enables
 | lang             | No       | Language code for i18n (e.g., 'en')                              |
 | e                | No       | Event reference for linking/threading                            |
 | dob              | No       | Date of birth (for age metric)                                   |
+| accuracy         | No       | Data accuracy, defaults to 'estimate'                              |
+| status           | No       | Status of the note, defaults to 'active'                              |
 
 Clients MUST ignore unknown tags and SHOULD preserve them when relaying events.
 
@@ -285,7 +296,9 @@ A JSON Schema for NIP-101h events is provided to ensure interoperability and red
     ["timestamp", "2025-05-01T10:00:00Z"],
     ["source", "RunstrApp"],
     ["version", "1"],
-    ["consent", "public"]
+    ["consent", "public"],
+    ["accuracy", "estimate"],
+    ["status", "active"]
   ],
   "created_at": 1672531200,
   "pubkey": "...",
@@ -309,7 +322,9 @@ A JSON Schema for NIP-101h events is provided to ensure interoperability and red
     ["encryption_algo", "nip44"],
     ["p", "receiver_pubkey"],
     ["version", "1"],
-    ["consent", "shared-with:npub1...xyz"]
+    ["consent", "shared-with:npub1...xyz"],
+    ["accuracy", "estimate"],
+    ["status", "active"]
   ],
   "created_at": 1672531205,
   "pubkey": "...",
@@ -333,7 +348,9 @@ A JSON Schema for NIP-101h events is provided to ensure interoperability and red
     ["timestamp", "2025-05-01T20:00:00Z"],
     ["source", "FoodTrackerApp"],
     ["version", "1"],
-    ["consent", "private"]
+    ["consent", "private"],
+    ["accuracy", "estimate"],
+    ["status", "active"]
   ],
   "created_at": 1672531210,
   "pubkey": "...",
@@ -356,7 +373,9 @@ A JSON Schema for NIP-101h events is provided to ensure interoperability and red
     ["source", "BPMonitor"],
     ["version", "1"],
     ["consent", "public"],
-    ["custom_tag", "custom_value"]
+    ["custom_tag", "custom_value"],
+    ["accuracy", "estimate"],
+    ["status", "active"]
   ],
   "created_at": 1672531220,
   "pubkey": "...",
@@ -397,6 +416,8 @@ The content field MUST contain the numeric weight value as a string.
 ## Optional Tags
 - ['converted_value', value, unit] - Provides the weight in alternative units for interoperability
 - ['timestamp', ISO8601 date] - When the weight was measured
+- ['accuracy', 'estimate' | 'accurate' | 'exact'] - Data accuracy, defaults to 'estimate'
+- ['status', 'active' | 'deleted' | 'invalid'] - Status of the note, defaults to 'active'
 
 ## Examples
 ```json
@@ -406,7 +427,9 @@ The content field MUST contain the numeric weight value as a string.
   "tags": [
     ["unit", "kg"],
     ["t", "health"],
-    ["t", "weight"]
+    ["t", "weight"],
+    ["accuracy", "estimate"],
+    ["status", "active"]
   ]
 }
 ```
@@ -419,12 +442,12 @@ The content field MUST contain the numeric weight value as a string.
     ["unit", "lb"],
     ["t", "health"],
     ["t", "weight"],
-    ["converted_value", "69.85", "kg"]
+    ["converted_value", "69.85", "kg"],
+    ["accuracy", "estimate"],
+    ["status", "active"]
   ]
 }
 ```
-
-
 
 ## NIP-101h.2: Height
 
@@ -452,6 +475,8 @@ The content field can use two formats:
 
 - `['converted_value', value, 'cm']` - Provides height in centimeters for interoperability when imperial is used
 - `['timestamp', ISO8601-date]` - When the height was measured
+- `['accuracy', 'estimate' | 'accurate' | 'exact']` - Data accuracy, defaults to 'estimate'
+- `['status', 'active' | 'deleted' | 'invalid']` - Status of the note, defaults to 'active'
 
 ### Examples
 
@@ -496,6 +521,8 @@ The content field MUST contain the numeric age value as a string.
 
 - `['timestamp', ISO8601-date]` - When the age was recorded
 - `['dob', ISO8601-date]` - Date of birth (if the user chooses to share it)
+- `['accuracy', 'estimate' | 'accurate' | 'exact']` - Data accuracy, defaults to 'estimate'
+- `['status', 'active' | 'deleted' | 'invalid']` - Status of the note, defaults to 'active'
 
 ### Examples
 

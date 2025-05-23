@@ -21,6 +21,8 @@ The content field contains a string representing the user's gender.
 
 - `['timestamp', ISO8601-date]` - When the gender was recorded
 - `['preferred_pronouns', string]` - User's preferred pronouns
+- `['accuracy', 'estimate' | 'accurate' | 'exact']` - Data accuracy, defaults to 'estimate'
+- `['status', 'active' | 'deleted' | 'invalid']` - Status of the note, defaults to 'active'
 
 ### Common Values
 

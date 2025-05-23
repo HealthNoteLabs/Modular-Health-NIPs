@@ -25,6 +25,12 @@ This document provides a quick reference to the individual health and fitness me
     -   **Kind:** `1359`
 -   **[NIP-101h.10: Elevation](./NIP101h.10.md)**
     -   **Kind:** `1360`
+-   **[NIP-101h.11: Splits](./NIP101h.11.md)**
+    -   **Kind:** `1361`
+-   **[NIP-101h.12: Pace](./NIP101h.12.md)**
+    -   **Kind:** `1362`
+-   **[NIP-101h.13: Distance](./NIP101h.13.md)**
+    -   **Kind:** `1363`
 
 ---
 

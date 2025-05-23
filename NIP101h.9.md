@@ -21,6 +21,10 @@ The content field MUST contain the numeric step count as a string.
 - `['start_time', ISO8601-date]` - The start time of the period (especially if `period` is not 'daily').
 - `['goal', numeric-string]` - The step goal for the period.
 - `['source', application-name or device-name]` - The source of the step count (e.g., "PedometerApp", "Fitbit").
+- `['end_time', ISO8601-datetime]` - End of the period for which steps are counted
+- `['device', string]` - Device used to measure steps (e.g., "Fitbit Inspire 3", "Apple Watch Series 8")
+- `['accuracy', `estimate` | `accurate` | `exact`]` - Data accuracy, defaults to 'estimate'
+- `['status', `active` | `deleted` | `invalid`]` - Status of the note, defaults to 'active'
 
 ### Examples
 ```json
@@ -49,7 +53,11 @@ The content field MUST contain the numeric step count as a string.
     ["period", "PT1H"],
     ["start_time", "2025-05-10T14:00:00Z"],
     ["timestamp", "2025-05-10T14:59:59Z"],
-    ["source", "HealthApp"]
+    ["source", "HealthApp"],
+    ["end_time", "2025-05-10T15:59:59Z"],
+    ["device", "Fitbit Inspire 3"],
+    ["accuracy", "accurate"],
+    ["status", "active"]
   ]
 }
 ```

@@ -23,6 +23,9 @@ The content field contains a string representing the user's fitness level.
 - `['timestamp', ISO8601-date]` - When the fitness level was recorded
 - `['activity', activity-type]` - Specific activity the fitness level relates to
 - `['metrics', JSON-string]` - Quantifiable fitness metrics used to determine level
+- `['assessment_method', string]` - How the fitness level was determined (e.g., "self-assessment", "Cooper test")
+- `['accuracy', estimate | accurate | exact]` - Data accuracy, defaults to 'estimate'
+- `['status', active | deleted | invalid]` - Status of the note, defaults to 'active'
 
 ### Common Values
 

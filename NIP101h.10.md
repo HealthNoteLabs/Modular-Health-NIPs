@@ -28,6 +28,11 @@ The content field MUST contain the numeric elevation value as a string. The unit
 - `['end_time', ISO8601-date]` - End time of the activity (if applicable).
 - `['source', application-name or device-name]` - The source of the measurement (e.g., "GPSLogger", "AltimeterApp").
 - `['converted_value', value, unit]` - Provides the elevation in alternative units.
+- `['reference_point', string]` - e.g., "sea_level", "start_of_activity"
+- `['accuracy_abs', numeric value, unit]` - Absolute accuracy of the elevation reading (e.g., "5", "m")
+- `['accuracy_rel', numeric value, unit]` - Relative accuracy if part of a series (e.g., "1", "m")
+- `['accuracy', `estimate` | `accurate` | `exact`]` - Data accuracy of the primary value, defaults to 'estimate'
+- `['status', `active` | `deleted` | `invalid`]` - Status of the note, defaults to 'active'
 
 ### Examples
 ```json
