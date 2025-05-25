@@ -1,0 +1,17 @@
+[
+  {
+    "id": "abc123",
+    "kind": 1351,
+    "content": "70",
+    "tags": [
+      ["unit", "kg"],
+      ["t", "health"],
+      ["t", "weight"],
+      ["timestamp", "2025-05-01T10:00:00Z"],
+      ["encryption_algo", "nip44"]
+    ],
+    "created_at": 1672531200,
+    "pubkey": "<pubkey>",
+    "sig": "<sig>"
+  }
+] 

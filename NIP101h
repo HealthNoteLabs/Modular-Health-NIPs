@@ -21,6 +21,7 @@ In this framework exists
 - NIP-101h.11 Splits using kind 1361
 - NIP-101h.12 Pace using kind 1362
 - NIP-101h.13 Distance using kind 1363
+- NIP-101h.14 Speed using kind 1364
 
 ## Motivation
 
@@ -85,6 +86,8 @@ All health metric events MUST follow these guidelines:
     - `user_edited`: user later edited or corrected the value
   - `['note', free-text]` - Short user note providing extra context (e.g., "Felt fatigued", "race day")
   - `['goal', value, unit]` - Target or goal associated with this metric (e.g., `['goal','10000','steps']`).  Clients MAY ignore if not applicable.
+  - `['period', 'daily' | 'weekly' | 'monthly' | ISO8601-duration-string]` - The time interval the metric applies to (e.g., for daily/weekly summaries, or specific durations like "PT1H").
+  - `['granularity', 'raw' | 'per_second' | 'per_minute' | 'per_hour' | 'daily']` - The typical sampling rate or aggregation level of the data (e.g., "raw" for exact measurement, "per_minute" if data is averaged/sampled per minute).
   - `['encryption_algo', 'nip44']` and `['p', <receiver_pubkey>]` - If NIP-44 encryption is used
   - `['encrypted', 'true'/'false']` - Explicit encryption status (optional)
   - `['version', '1']` - For future versioning (optional)
@@ -108,6 +111,8 @@ All health metric events MUST follow these guidelines:
     ["entry_method", "manual"],
     ["note", ""],
     ["goal", "", "steps"],
+    ["period", "daily"],
+    ["granularity", "raw"],
     ["converted_value", "154", "lb"],
     ["encryption_algo", "nip44"],
     ["p", "receiver_pubkey"],
@@ -139,6 +144,10 @@ Clients implementing this NIP SHOULD:
 - Preserve tags they don't understand for future compatibility
 - Support at least the canonical unit for each metric
 - Filter, group, and request metrics by category and subcategory
+- Utilize `['e', <event_id>]` tags to link related events. This is crucial for:
+  - Grouping metrics that belong to a single logical session (e.g., multiple splits, pace, and distance events for one run).
+  - Linking detailed, granular events to higher-level summary events.
+  - Indicating revisions or corrections to previous events (potentially with a marker like ['e', <old_event_id>, <relay_hint>, 'correction']).
 
 ### Extensions
 
@@ -184,6 +193,8 @@ When exporting multiple NIP-101h events as JSON, the output SHOULD be an array o
       ["entry_method", "manual"],
       ["note", ""],
       ["goal", "", "steps"],
+      ["period", "daily"],
+      ["granularity", "raw"],
       ["accuracy", "estimate"],
       ["status", "active"]
     ],
@@ -205,6 +216,8 @@ When exporting multiple NIP-101h events as JSON, the output SHOULD be an array o
       ["entry_method", "manual"],
       ["note", ""],
       ["goal", "", "cm"],
+      ["period", "daily"],
+      ["granularity", "raw"],
       ["accuracy", "estimate"],
       ["status", "active"]
     ],
@@ -222,14 +235,13 @@ If NIP-44 encryption was used for the original event, the `content` field in the
 ### CSV Export
 CSV export requires a flattened structure. A recommended approach is to have common columns and then metric-specific columns. Clients or export tools will need to decide on a consistent set of columns for a given export.
 
-**Common Columns:** `id`, `kind`, `created_at`, `pubkey`, `metric_type`, `timestamp`, `unit`, `value`, `source`, `device`, `entry_method`, `note`, `goal`, `encrypted (true/false)`, `accuracy`, `status`
+**Common Columns:** `id`, `kind`, `created_at`, `pubkey`, `metric_type`, `timestamp`, `unit`, `value`, `source`, `device`, `entry_method`, `note`, `goal`, `period`, `granularity`, `encrypted (true/false)`, `accuracy`, `status`
 
 **Example CSV Structure (conceptual):**
 
-`id,kind,created_at,pubkey,metric_type,timestamp,unit,value,source,device,entry_method,note,goal,activity,period,goal,source,encrypted,accuracy,status`
-`id,kind,created_at,pubkey,metric_type,timestamp,unit,value,source,device,entry_method,note,goal,activity,period,encrypted,accuracy,status`
-`event_id1,1351,1672531200,pubkey1,weight,2025-05-01T10:00:00Z,kg,70,,,RunstrApp,Fitbit Inspire 3,manual,,,daily,10000,DeviceA,true,estimate,active`
-`event_id2,1359,1672531205,pubkey1,step_count,2025-05-01T23:59:59Z,steps,10520,,,RunstrApp,Fitbit Inspire 3,manual,,,10000,DeviceA,true,estimate,active`
+`id,kind,created_at,pubkey,metric_type,timestamp,unit,value,source,device,entry_method,note,goal,period,granularity,activity,encrypted,accuracy,status`
+`event_id1,1351,1672531200,pubkey1,weight,2025-05-01T10:00:00Z,kg,70,RunstrApp,ScaleX,manual,My weight after holiday,70,kg,raw,,true,estimate,active`
+`event_id2,1359,1672531205,pubkey1,step_count,2025-05-01T23:59:59Z,steps,10520,WatchApp,WatchY,automated_device,Daily steps,10000,steps,daily,daily,running,true,accurate,active`
 
 **Notes for CSV Export:**
 -   The `value` column would store the primary content of the NIP-101h event.
@@ -237,6 +249,10 @@ CSV export requires a flattened structure. A recommended approach is to have com
 -   For encrypted content, the `value` field in the CSV might be an empty string, a placeholder like "[encrypted]", or the encrypted string itself, depending on the use case. The `encrypted` column explicitly states the encryption status.
 -   Additional tags from the Nostr event can be added as extra columns (e.g., `activity`, `period`, `goal` as shown above).
 -   The specific columns included in a CSV export can be tailored to the application or user's needs. Individual NIP-101h.X specifications may provide more tailored CSV column suggestions if particular tags are common for that metric.
+| goal             | No       | Target value for the metric (when applicable)                    |
+| period           | No       | Interval the metric applies to (e.g., `daily`, `PT1H`)            |
+| granularity      | No       | Sampling rate or aggregation level (e.g., `raw`, `per_minute`)   |
+| encryption_algo  | No       | Encryption algorithm used (e.g., 'nip44')                        |
 
 ## Versioning Policy
 
@@ -257,6 +273,8 @@ All NIP-101h events MUST include a version tag: `['version', '1']`. This enables
 | entry_method     | No       | `manual`, `automated_device`, `automated_app`, `user_edited`     |
 | note             | No       | Free-form user note                                              |
 | goal             | No       | Target value for the metric (when applicable)                    |
+| period           | No       | Interval the metric applies to (e.g., `daily`, `PT1H`)            |
+| granularity      | No       | Sampling rate or aggregation level (e.g., `raw`, `per_minute`)   |
 | encryption_algo  | No       | Encryption algorithm used (e.g., 'nip44')                        |
 | p                | No       | Receiver pubkey for encryption                                   |
 | encrypted        | No       | Explicit encryption status ('true'/'false')                      |
@@ -326,6 +344,8 @@ A JSON Schema for NIP-101h events is provided to ensure interoperability and red
     ["entry_method", "manual"],
     ["note", ""],
     ["goal", "", "steps"],
+    ["period", "daily"],
+    ["granularity", "raw"],
     ["version", "1"],
     ["consent", "public"],
     ["accuracy", "estimate"],
@@ -354,6 +374,8 @@ A JSON Schema for NIP-101h events is provided to ensure interoperability and red
     ["entry_method", "automated_device"],
     ["note", ""],
     ["goal", "", "steps"],
+    ["period", "daily"],
+    ["granularity", "raw"],
     ["encryption_algo", "nip44"],
     ["p", "receiver_pubkey"],
     ["version", "1"],
@@ -386,6 +408,8 @@ A JSON Schema for NIP-101h events is provided to ensure interoperability and red
     ["entry_method", "automated_app"],
     ["note", ""],
     ["goal", "", "kcal"],
+    ["period", "daily"],
+    ["granularity", "raw"],
     ["version", "1"],
     ["consent", "private"],
     ["accuracy", "estimate"],
@@ -414,6 +438,8 @@ A JSON Schema for NIP-101h events is provided to ensure interoperability and red
     ["entry_method", "manual"],
     ["note", ""],
     ["goal", "", "mmHg"],
+    ["period", "daily"],
+    ["granularity", "raw"],
     ["version", "1"],
     ["consent", "public"],
     ["custom_tag", "custom_value"],

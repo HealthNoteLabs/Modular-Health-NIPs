@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "NostrEvent",
+  "type": "object",
+  "required": ["kind", "content", "tags", "created_at"],
+  "properties": {
+    "id": { "type": "string" },
+    "pubkey": { "type": "string" },
+    "sig": { "type": "string" },
+    "kind": { "type": "integer" },
+    "content": { "type": "string" },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "minItems": 2,
+        "items": { "type": "string" }
+      }
+    },
+    "created_at": { "type": "integer" }
+  },
+  "additionalProperties": true
+} 

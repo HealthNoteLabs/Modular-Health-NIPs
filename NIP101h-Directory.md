@@ -31,6 +31,8 @@ This document provides a quick reference to the individual health and fitness me
     -   **Kind:** `1362`
 -   **[NIP-101h.13: Distance](./NIP101h.13.md)**
     -   **Kind:** `1363`
+-   **[NIP-101h.14: Speed](./NIP101h.14.md)**
+    -   **Kind:** `1364`
 
 ---
 
