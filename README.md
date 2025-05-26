@@ -1,4 +1,4 @@
-# Modular-Health-NIPs: NIP-101h for Decentralized Health Data on Nostr
+# Decentralized Health Data on Nostr
 
 ## Overview
 
