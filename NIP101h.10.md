@@ -23,7 +23,7 @@ The content field MUST contain the numeric elevation value as a string. The unit
 
 ### Optional Tags
 - `['timestamp', ISO8601-date]` - When the elevation was recorded or the activity ended.
-- `['activity', activity-type]` - Specifies the type of activity if `type` is 'gain', 'loss', 'max', or 'min' (e.g., "hiking", "trail_running", "cycling").
+- `['activity_type', activity-type]` - Specifies the type of activity if `type` is 'gain', 'loss', 'max', or 'min' (e.g., "hiking", "trail_running", "cycling").
 - `['start_time', ISO8601-date]` - Start time of the activity (if applicable).
 - `['end_time', ISO8601-date]` - End time of the activity (if applicable).
 - `['source', application-name or device-name]` - The source of the measurement (e.g., "GPSLogger", "AltimeterApp").
@@ -44,7 +44,7 @@ The content field MUST contain the numeric elevation value as a string. The unit
     ["t", "health"],
     ["t", "elevation"],
     ["type", "gain"],
-    ["activity", "hiking"],
+    ["activity_type", "hiking"],
     ["timestamp", "2025-05-10T16:00:00Z"]
   ]
 }
@@ -68,7 +68,7 @@ The content field MUST contain the numeric elevation value as a string. The unit
 
 ### Implementation Notes
 - The `type` tag is crucial to understand if the value represents a change (gain/loss) or a state (altitude).
-- For `type: 'gain'`, `loss`, `max`, or `min`, the `activity` tag provides important context.
+- For `type: 'gain'`, `loss`, `max`, or `min`, the `activity_type` tag provides important context.
 - `timestamp` can represent the measurement time for `altitude`, or the completion time for `gain`/`loss`/`max`/`min` over an activity.
 
 ### Privacy Notes

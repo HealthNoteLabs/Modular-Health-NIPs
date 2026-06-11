@@ -14,14 +14,14 @@ The content field MUST contain the numeric duration value as a string. The unit 
 - `['unit', 'seconds' or 'minutes' or 'hours']` - Unit of measurement for the duration.
 - `['t', 'health']` - Categorization tag.
 - `['t', 'activity_duration']` - Specific metric tag.
-- `['activity', activity-type]` - Specifies the type of activity (e.g., "running", "cycling", "swimming", "workout").
+- `['activity_type', activity-type]` - Specifies the type of activity (e.g., "running", "cycling", "swimming", "workout").
 
 ### Optional Tags
 - `['timestamp', ISO8601-date]` - When the activity was completed or the duration was recorded.
 - `['start_time', ISO8601-date]` - When the activity started.
 - `['end_time', ISO8601-date]` - When the activity ended.
 - `['source', application-name]` - The source of the measurement (e.g., "FitTrackerApp", "SmartWatchXYZ").
-- `['related_event', event-id]` - To link to another event, e.g., a detailed workout event (NIP-101e).
+- `['e', event-id]` - To link to another event, e.g., a detailed workout event (NIP-101e).
 - `['accuracy', 'estimate' | 'accurate' | 'exact']` - Data accuracy, defaults to 'estimate'
 - `['status', 'active' | 'deleted' | 'invalid']` - Status of the note, defaults to 'active'
 
@@ -34,7 +34,7 @@ The content field MUST contain the numeric duration value as a string. The unit 
     ["unit", "seconds"],
     ["t", "health"],
     ["t", "activity_duration"],
-    ["activity", "running"],
+    ["activity_type", "running"],
     ["timestamp", "2025-05-10T09:30:00Z"]
   ]
 }
@@ -48,7 +48,7 @@ The content field MUST contain the numeric duration value as a string. The unit 
     ["unit", "minutes"],
     ["t", "health"],
     ["t", "activity_duration"],
-    ["activity", "weightlifting"],
+    ["activity_type", "weightlifting"],
     ["start_time", "2025-05-10T17:00:00Z"],
     ["end_time", "2025-05-10T17:45:00Z"],
     ["source", "MyFitnessPal"]
@@ -59,7 +59,7 @@ The content field MUST contain the numeric duration value as a string. The unit 
 ### Implementation Notes
 - While `seconds` is granular, `minutes` might be more common for many activities.
 - If both `start_time` and `end_time` are provided, the `content` (duration) should ideally match `end_time - start_time`. Clients can calculate duration if not explicitly provided but `start_time` and `end_time` are present.
-- The `activity` tag is crucial for context.
+- The `activity_type` tag is crucial for context.
 
 ### Privacy Notes
 - As with all NIP-101h metrics, client implementations SHOULD default to encrypting the event content using NIP-44, offering an explicit option for unencrypted publishing.

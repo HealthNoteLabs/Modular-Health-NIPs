@@ -48,3 +48,35 @@ The content field MUST contain the numeric distance value as a string.
   ]
 }
 ```
+
+```json
+{
+  "kind": 1363,
+  "content": "400",
+  "tags": [
+    ["unit", "m"],
+    ["t", "health"],
+    ["t", "distance"],
+    ["category", "activity & fitness"],
+    ["activity_type", "running"],
+    ["segment_type", "part"],
+    ["segment_number", "2"],
+    ["timestamp", "2025-06-10T10:02:30Z"],
+    ["source", "LapTimerApp"],
+    ["accuracy", "estimate"],
+    ["status", "active"],
+    ["version", "1"]
+  ]
+}
+```
+
+### Implementation Notes
+- The `unit` tag declares the unit of the value in `content`; clients SHOULD support at least metric (`m`, `km`) units and provide conversions where helpful.
+- Use `segment_type` to distinguish a total activity distance (`total`) from an individual lap or segment (`part`), and `segment_number` to order segments.
+- Segment distance events MAY be linked to a parent activity or session summary via an `['e', <event_id>]` tag.
+
+### Privacy Notes
+- As with all NIP-101h metrics, client implementations SHOULD default to encrypting the event content using NIP-44, offering an explicit option for unencrypted publishing.
+
+### Known Client Implementations
+- (To be added)

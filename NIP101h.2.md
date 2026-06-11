@@ -27,12 +27,31 @@ The content field can use two formats:
 
 ### Examples
 
-```jsx
+```json
 // Example 1: Metric height
-Apply to App.jsx
+{
+  "kind": 1352,
+  "content": "175",
+  "tags": [
+    ["t", "health"],
+    ["t", "height"],
+    ["unit", "cm"]
+  ]
+}
+```
 
+```json
 // Example 2: Imperial height with conversion
-Apply to App.jsx
+{
+  "kind": 1352,
+  "content": "{\"feet\": 5, \"inches\": 9}",
+  "tags": [
+    ["t", "health"],
+    ["t", "height"],
+    ["unit", "imperial"],
+    ["converted_value", "175", "cm"]
+  ]
+}
 ```
 
 ### Implementation Notes

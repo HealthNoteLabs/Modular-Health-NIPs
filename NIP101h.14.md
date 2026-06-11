@@ -24,7 +24,7 @@ The `content` field MUST contain the numeric speed value as a string. The value 
 - [`activity_type`, string] – Activity during which the speed was recorded (e.g., `cycling`, `running`).
 - [`distance`, numeric-string] – Distance covered during `period`, useful for computing speed context.
 - [`distance_unit`, `km` | `mi` | `m`] – Unit corresponding to `distance`.
-- [`related_event`, <event_id>] – Event ID of a broader session summary.
+- [`e`, <event_id>] – Event ID of a broader session summary.
 - [`source`, application-name or device-name] – Source application or device.
 - [`device`, string] – Specific measuring device model.
 - [`accuracy`, `estimate` | `accurate` | `exact`] – Measurement accuracy. Defaults to `estimate`.
@@ -66,7 +66,7 @@ The `content` field MUST contain the numeric speed value as a string. The value 
     ["speed_type", "max"],
     ["activity_type", "cycling"],
     ["timestamp", "2025-06-15T10:15:30Z"],
-    ["related_event", "<event_id_of_the_full_ride_summary>"],
+    ["e", "<event_id_of_the_full_ride_summary>"],
     ["source", "BikeComputerX"],
     ["version", "1"]
   ]
@@ -76,7 +76,10 @@ The `content` field MUST contain the numeric speed value as a string. The value 
 ## Implementation Notes
 - `speed_type` distinguishes between instantaneous maximum speed and aggregated average speed.
 - When recording average speed, `start_time` / `timestamp` or `period` SHOULD be supplied to clarify the aggregation window.
-- Clients MAY link this event to a larger workout summary via `related_event`.
+- Clients MAY link this event to a larger workout summary via an `['e', <event_id>]` tag.
 
 ## Privacy Notes
-As with all NIP-101h metrics, client implementations SHOULD default to encrypting the `content` using NIP-44 encryption, offering users an explicit option for unencrypted publication. 
+As with all NIP-101h metrics, client implementations SHOULD default to encrypting the `content` using NIP-44 encryption, offering users an explicit option for unencrypted publication.
+
+## Known Client Implementations
+- (To be added) 

@@ -21,7 +21,7 @@ The content field contains a string representing the user's fitness level.
 ### Optional Tags
 
 - `['timestamp', ISO8601-date]` - When the fitness level was recorded
-- `['activity', activity-type]` - Specific activity the fitness level relates to
+- `['activity_type', activity-type]` - Specific activity the fitness level relates to
 - `['metrics', JSON-string]` - Quantifiable fitness metrics used to determine level
 - `['assessment_method', string]` - How the fitness level was determined (e.g., "self-assessment", "Cooper test")
 - `['accuracy', estimate | accurate | exact]` - Data accuracy, defaults to 'estimate'
@@ -38,18 +38,40 @@ While any string value is permitted, the following common values are recommended
 
 ### Examples
 
-```jsx
+```json
 // Example 1: Basic fitness level
-Apply to App.jsx
+{
+  "kind": 1355,
+  "content": "intermediate",
+  "tags": [
+    ["t", "health"],
+    ["t", "fitness"],
+    ["t", "level"]
+  ]
+}
+```
 
+```json
 // Example 2: Activity-specific fitness level with metrics
-Apply to App.jsx
+{
+  "kind": 1355,
+  "content": "advanced",
+  "tags": [
+    ["t", "health"],
+    ["t", "fitness"],
+    ["t", "level"],
+    ["activity_type", "running"],
+    ["assessment_method", "Cooper test"],
+    ["metrics", "{\"vo2max\": 52}"],
+    ["timestamp", "2025-05-01T10:00:00Z"]
+  ]
+}
 ```
 
 ### Implementation Notes
 
 - Fitness level is subjective and may vary by activity
-- The activity tag can be used to specify fitness level for different activities
+- The `activity_type` tag can be used to specify fitness level for different activities
 - The metrics tag can provide objective measurements to support the fitness level
 - Clients can extend this format to include activity-specific fitness assessments
 - For general fitness apps, the simple beginner/intermediate/advanced scale is recommended

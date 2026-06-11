@@ -27,7 +27,7 @@ For both kinds, the content field MUST contain the numeric caloric value as a st
 - `['source', application-name]` - The source of the measurement
 - `['accuracy', 'estimate' | 'accurate' | 'exact']` - Data accuracy, defaults to 'estimate'
 - `['status', 'active' | 'deleted' | 'invalid']` - Status of the note, defaults to 'active'
-- `['activity', string]` - Specific activity if calories expended (e.g., "running", "cycling")
+- `['activity_type', string]` - Specific activity if calories expended (e.g., "running", "cycling")
 - `['food_item', string]` - Specific food item if calories consumed
 - `['meal_type', string]` - e.g., "breakfast", "lunch", "dinner", "snack"
 
@@ -38,7 +38,7 @@ This kind specifically represents calories burned or expended through activity, 
 **Event Kind:** 1357
 
 **Additional Optional Tags:**
-- `['activity', activity-type]` - Type of activity associated with the expenditure
+- `['activity_type', activity-type]` - Type of activity associated with the expenditure
 - `['duration', minutes]` - Duration of the activity in minutes
 - `['intensity', value]` - Reference to workout intensity (can link to a Kind 1356 event)
 
@@ -51,7 +51,7 @@ This kind specifically represents calories burned or expended through activity, 
     ["unit", "kcal"],
     ["t", "health"],
     ["t", "calories"],
-    ["activity", "running"],
+    ["activity_type", "running"],
     ["duration", "45"],
     ["timestamp", "2025-05-06T18:45:00Z"],
     ["accuracy", "estimate"],
@@ -67,8 +67,8 @@ This kind specifically represents calories consumed through food and drink intak
 **Event Kind:** 2357
 
 **Additional Optional Tags:**
-- `['meal', meal-type]` - Type of meal (breakfast, lunch, dinner, snack)
-- `['food', food-description]` - Description of the food consumed
+- `['meal_type', meal-type]` - Type of meal (breakfast, lunch, dinner, snack)
+- `['food_item', food-description]` - Description of the food consumed
 - `['macros', JSON-string]` - Breakdown of macronutrients (proteins, carbs, fats)
 - `['brand_name', string]` - Brand or restaurant name, if applicable (e.g., "Starbucks", "Homemade")
 - `['serving_size', numeric-string, unit-string]` - Serving size for the portion consumed (e.g., "1", "cup")
@@ -82,8 +82,8 @@ This kind specifically represents calories consumed through food and drink intak
     ["unit", "kcal"],
     ["t", "health"],
     ["t", "calories"],
-    ["meal", "lunch"],
-    ["food", "Chicken salad with avocado"],
+    ["meal_type", "lunch"],
+    ["food_item", "Chicken salad with avocado"],
     ["macros", "{\"protein\":35,\"carbs\":15,\"fat\":42}"],
     ["brand_name", "Starbucks"],
     ["serving_size", "1", "cup"],

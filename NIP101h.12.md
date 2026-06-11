@@ -16,7 +16,7 @@ So, for 5 minutes 30 seconds per km, content is "330" and unit tag would be `["p
 - [`t`, `health`] - Categorization tag
 - [`t`, `pace`] - Specific metric tag
 - [`category`, `activity & fitness`] - Top-level category
-- [`pace_unit`, `s/km` | `s/mi` | `min/km` | `min/mi`] - Unit of pace measurement. While `s/km` or `s/mi` is preferred for the `content` field (total seconds), this tag clarifies the intended display or original format.
+- [`pace_unit`, `s/km` | `s/mi` | `min/km` | `min/mi` | `s/100m`] - Unit of pace measurement. While `s/km` or `s/mi` is preferred for the `content` field (total seconds), this tag clarifies the intended display or original format. `s/100m` is included for pool-based swimming pace.
 
 ## Optional Tags
 - [`activity_type`, string] - Type of activity (e.g., "running", "cycling", "swimming")

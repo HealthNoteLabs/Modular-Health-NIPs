@@ -1,5 +1,7 @@
 # NIP-101h.1: Weight
 
+**Status:** Draft
+
 ## Description
 This NIP defines the format for storing and sharing weight data on Nostr.
 
@@ -16,6 +18,8 @@ The content field MUST contain the numeric weight value as a string.
 ## Optional Tags
 - ['converted_value', value, unit] - Provides the weight in alternative units for interoperability
 - ['timestamp', ISO8601 date] - When the weight was measured
+- ['accuracy', 'estimate' | 'accurate' | 'exact'] - Data accuracy, defaults to 'estimate'
+- ['status', 'active' | 'deleted' | 'invalid'] - Status of the note, defaults to 'active'
 
 ## Examples
 ```json
@@ -42,6 +46,11 @@ The content field MUST contain the numeric weight value as a string.
   ]
 }
 ```
+
+### Implementation Notes
+- Kilograms (kg) is the canonical unit for weight interoperability
+- When using imperial units (lb), a `converted_value` to kilograms SHOULD be provided
+- Weight values SHOULD be positive numbers
 
 ### Privacy Notes
 - As with all NIP-101h metrics, client implementations SHOULD default to encrypting the event content using NIP-44, offering an explicit option for unencrypted publishing.

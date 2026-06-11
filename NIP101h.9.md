@@ -65,7 +65,7 @@ The content field MUST contain the numeric step count as a string.
 ### Implementation Notes
 - For `period: 'daily'`, the `timestamp` typically represents the end of that day.
 - Clients can use `start_time` and `timestamp` (as end_time) to define precise intervals if `period` is not 'daily'.
-- This NIP focuses on the count itself. For detailed step data per activity, other NIPs or event kinds might be more suitable or linked via `related_event` if needed.
+- This NIP focuses on the count itself. For detailed step data per activity, other NIPs or event kinds might be more suitable or linked via an `['e', <event_id>]` tag if needed.
 
 ### Privacy Notes
 - As with all NIP-101h metrics, client implementations SHOULD default to encrypting the event content using NIP-44, offering an explicit option for unencrypted publishing.

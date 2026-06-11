@@ -23,7 +23,7 @@ The content field contains a string representing the workout intensity, which ca
 ### Optional Tags
 
 - `['timestamp', ISO8601-date]` - When the workout intensity was recorded
-- `['activity', activity-type]` - Specific activity the intensity relates to
+- `['activity_type', activity-type]` - Specific activity the intensity relates to
 - `['zone', '1'-'5']` - Heart rate/intensity zone (if applicable)
 - `['source', application-name]` - The source of the measurement
 - `['perceived_exertion_scale', string]` - Scale used for perceived exertion (e.g., "RPE 1-10", "Borg CR10")
@@ -40,7 +40,7 @@ The content field contains a string representing the workout intensity, which ca
     ["t", "health"],
     ["t", "intensity"],
     ["scale", "rpe10"],
-    ["activity", "running"],
+    ["activity_type", "running"],
     ["timestamp", "2025-05-06T12:30:00Z"]
   ]
 }
@@ -55,7 +55,7 @@ The content field contains a string representing the workout intensity, which ca
     ["t", "intensity"],
     ["scale", "keyword"],
     ["zone", "4"],
-    ["activity", "cycling"],
+    ["activity_type", "cycling"],
     ["source", "TrainTrack"]
   ]
 }
@@ -66,7 +66,7 @@ The content field contains a string representing the workout intensity, which ca
 - The RPE scale (1-10) provides more granular intensity measurement
 - Keyword scale (low/moderate/high/max) is more approachable for general users
 - Heart rate zones can provide additional context when available from devices
-- Workout intensity is typically activity-specific and should include the activity tag when possible
+- Workout intensity is typically activity-specific and should include the `activity_type` tag when possible
 
 ### Privacy Notes
 - As with all NIP-101h metrics, client implementations SHOULD default to encrypting the event content using NIP-44, offering an explicit option for unencrypted publishing.

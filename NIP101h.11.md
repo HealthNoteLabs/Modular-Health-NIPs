@@ -11,7 +11,7 @@ This NIP defines the format for storing and sharing split times for activities o
 The content field MUST contain the numeric duration of the split in seconds, as a string.
 
 ## Required Tags
-- [`unit`, `s`] - Unit of measurement (seconds)
+- [`unit`, `seconds`] - Unit of measurement (seconds)
 - [`t`, `health`] - Categorization tag
 - [`t`, `splits`] - Specific metric tag
 - [`category`, `activity & fitness`] - Top-level category
@@ -19,7 +19,7 @@ The content field MUST contain the numeric duration of the split in seconds, as 
 ## Optional Tags
 - [`split_number`, positive integer string] - Sequential number of the split in an activity (e.g., "1", "2")
 - [`split_distance`, numeric string, unit string] - Distance covered in this split (e.g., "1", "km", or "400", "m")
-- [`activity_id`, event_id string] - Reference to a parent activity event this split belongs to
+- [`e`, event_id string] - Reference to a parent activity event this split belongs to
 - [`timestamp`, ISO8601 date] - When the split was completed or recorded
 - [`source`, application-name or device-name] - The source of the measurement
 - [`accuracy`, `estimate` | `accurate` | `exact`] - Data accuracy, defaults to 'estimate'
@@ -33,7 +33,7 @@ The content field MUST contain the numeric duration of the split in seconds, as 
   "kind": 1361,
   "content": "245", // 4 minutes 5 seconds
   "tags": [
-    ["unit", "s"],
+    ["unit", "seconds"],
     ["t", "health"],
     ["t", "splits"],
     ["category", "activity & fitness"],
@@ -52,13 +52,13 @@ The content field MUST contain the numeric duration of the split in seconds, as 
   "kind": 1361,
   "content": "58.5", 
   "tags": [
-    ["unit", "s"],
+    ["unit", "seconds"],
     ["t", "health"],
     ["t", "splits"],
     ["category", "activity & fitness"],
     ["split_number", "3"],
     ["split_distance", "400", "m"],
-    ["activity_id", "some_event_id_for_the_full_workout"],
+    ["e", "some_event_id_for_the_full_workout"],
     ["source", "LapTimerApp"],
     ["accuracy", "estimate"],
     ["status", "active"],
@@ -66,6 +66,12 @@ The content field MUST contain the numeric duration of the split in seconds, as 
   ]
 }
 ```
+
+### Implementation Notes
+- `seconds` is the canonical unit for split durations.
+- Use `split_number` to order splits within a single activity, and an `['e', <event_id>]` tag to link all splits back to their parent activity event.
+- `cumulative_time` is optional but helps clients reconstruct elapsed time without summing every prior split.
+- A single run or workout will typically produce multiple Kind 1361 events, one per split.
 
 ### Privacy Notes
 - As with all NIP-101h metrics, client implementations SHOULD default to encrypting the event content using NIP-44, offering an explicit option for unencrypted publishing.

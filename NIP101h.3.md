@@ -25,12 +25,32 @@ The content field MUST contain the numeric age value as a string.
 
 ### Examples
 
-```jsx
+```json
 // Example 1: Basic age
-Apply to App.jsx
+{
+  "kind": 1353,
+  "content": "30",
+  "tags": [
+    ["unit", "years"],
+    ["t", "health"],
+    ["t", "age"]
+  ]
+}
+```
 
+```json
 // Example 2: Age with DOB
-Apply to App.jsx
+{
+  "kind": 1353,
+  "content": "30",
+  "tags": [
+    ["unit", "years"],
+    ["t", "health"],
+    ["t", "age"],
+    ["dob", "1995-05-01"],
+    ["timestamp", "2025-05-01T10:00:00Z"]
+  ]
+}
 ```
 
 ### Implementation Notes

@@ -34,7 +34,7 @@ I want to build and support an ecosystem of health and fitness related nostr cli
 
 ## Framework Structure: Categories and Subcategories
 
-To ensure scalability, discoverability, and privacy, all health metrics are organized into top-level categories and, where appropriate, subcategories. Each metric kind is assigned within a category range, and all events must include a `category` tag. This structure supports filtering, permissions, and future extensibility.
+To ensure scalability, discoverability, and privacy, all health metrics are organized into top-level categories and, where appropriate, subcategories. Each metric kind is assigned within a category range, and all events SHOULD include a `category` tag (RECOMMENDED — see the Canonical Tag Registry). This structure supports filtering, permissions, and future extensibility.
 
 ### Example Top-Level Categories
 - **Anthropometrics** (e.g., weight, height, BMI)
@@ -45,23 +45,28 @@ To ensure scalability, discoverability, and privacy, all health metrics are orga
 - **Medical & Biometrics** (e.g., blood pressure, heart rate, glucose)
 - **Lifestyle & Environment** (e.g., alcohol, caffeine, screen time)
 
-Each category is assigned a kind number range (e.g., 1351–1369 for Anthropometrics, 1370–1389 for Activity, etc.). See the table below for current assignments.
+Each category is assigned a kind number range. The metrics defined so far (NIP-101h.1–101h.14) were assigned sequentially in the 1351–1364 band: **1351–1354 for Anthropometrics** and **1355–1364 for Activity & Fitness**. See the table below for current assignments.
 
 ## Specification
 
 ### Kind Number Ranges by Category
 
-| Kind Range   | Category                  |
-| ------------ | ------------------------- |
-| 1351–1369    | Anthropometrics           |
-| 1370–1389    | Activity & Fitness        |
-| 1390–1409    | Nutrition & Diet          |
-| 1410–1429    | Sleep                     |
-| 1430–1449    | Mental Health & Mindfulness |
-| 1450–1469    | Medical & Biometrics      |
-| 1470–1489    | Lifestyle & Environment   |
-| 1490–1499    | Reserved for future use   |
-| 2351–2399    | Paired/secondary metrics  |
+The table below reflects where kinds are **actually assigned**. The metrics published so far were numbered sequentially in the 1351–1364 band, so the first four kinds (Anthropometrics) and the next ten (Activity & Fitness) sit adjacent to each other rather than in separate 20-wide bands. Ranges marked *Reserved* have no kinds assigned yet and are aspirational targets for future metrics.
+
+| Kind Range   | Category                    | Status                                   |
+| ------------ | --------------------------- | ---------------------------------------- |
+| 1351–1354    | Anthropometrics             | Assigned (Weight, Height, Age, Gender)   |
+| 1355–1364    | Activity & Fitness          | Assigned (Fitness Level → Speed; includes Calories Expended 1357) |
+| 1365–1389    | Activity & Fitness          | Reserved (continuation for future activity metrics) |
+| 1390–1409    | Nutrition & Diet            | Reserved                                 |
+| 1410–1429    | Sleep                       | Reserved                                 |
+| 1430–1449    | Mental Health & Mindfulness | Reserved                                 |
+| 1450–1469    | Medical & Biometrics        | Reserved                                 |
+| 1470–1489    | Lifestyle & Environment     | Reserved                                 |
+| 1490–1499    | Reserved for future use     | Reserved                                 |
+| 2351–2399    | Paired/secondary metrics    | Partially assigned (Calories Consumed 2357) |
+
+> **Note:** Kinds 1355–1364 were originally drafted under an "Anthropometrics" range label that did not match their actual Activity & Fitness content. Those kinds are published and in use, so they are retained as-is and the range labels above have been corrected to match reality. Existing kind numbers MUST NOT be renumbered.
 
 ### Common Event Structure
 
@@ -71,8 +76,10 @@ All health metric events MUST follow these guidelines:
 - Required tags:
   - `['t', 'health']` - For categorizing as health data
   - `['t', metric-specific-tag]` - For identifying the specific metric
-  - `['category', category-name]` - The top-level category (e.g., 'anthropometrics')
   - `['unit', unit-of-measurement]` - When applicable
+- Recommended tags:
+  - `['category', category-name]` - The top-level category (e.g., 'anthropometrics'). RECOMMENDED; absent from specs 101h.1–101h.10, which predate it. Future specs SHOULD include it.
+  - `['version', '1']` - Protocol version. RECOMMENDED; see Versioning Policy. Future specs SHOULD include it.
 - Optional tags:
   - `['subcategory', subcategory-name]` - For finer granularity
   - `['converted_value', value, unit]` - For providing alternative unit measurements
@@ -90,7 +97,6 @@ All health metric events MUST follow these guidelines:
   - `['granularity', 'raw' | 'per_second' | 'per_minute' | 'per_hour' | 'daily']` - The typical sampling rate or aggregation level of the data (e.g., "raw" for exact measurement, "per_minute" if data is averaged/sampled per minute).
   - `['encryption_algo', 'nip44']` and `['p', <receiver_pubkey>]` - If NIP-44 encryption is used
   - `['encrypted', 'true'/'false']` - Explicit encryption status (optional)
-  - `['version', '1']` - For future versioning (optional)
   - `['accuracy', 'estimate' | 'accurate' | 'exact']` - Data accuracy, defaults to 'estimate'
   - `['status', 'active' | 'deleted' | 'invalid']` - Status of the note, defaults to 'active'
 
@@ -239,7 +245,7 @@ CSV export requires a flattened structure. A recommended approach is to have com
 
 **Example CSV Structure (conceptual):**
 
-`id,kind,created_at,pubkey,metric_type,timestamp,unit,value,source,device,entry_method,note,goal,period,granularity,activity,encrypted,accuracy,status`
+`id,kind,created_at,pubkey,metric_type,timestamp,unit,value,source,device,entry_method,note,goal,period,granularity,activity_type,encrypted,accuracy,status`
 `event_id1,1351,1672531200,pubkey1,weight,2025-05-01T10:00:00Z,kg,70,RunstrApp,ScaleX,manual,My weight after holiday,70,kg,raw,,true,estimate,active`
 `event_id2,1359,1672531205,pubkey1,step_count,2025-05-01T23:59:59Z,steps,10520,WatchApp,WatchY,automated_device,Daily steps,10000,steps,daily,daily,running,true,accurate,active`
 
@@ -247,23 +253,21 @@ CSV export requires a flattened structure. A recommended approach is to have com
 -   The `value` column would store the primary content of the NIP-101h event.
 -   `metric_type` could be a human-readable version of the metric (e.g., "weight", "step_count").
 -   For encrypted content, the `value` field in the CSV might be an empty string, a placeholder like "[encrypted]", or the encrypted string itself, depending on the use case. The `encrypted` column explicitly states the encryption status.
--   Additional tags from the Nostr event can be added as extra columns (e.g., `activity`, `period`, `goal` as shown above).
+-   Additional tags from the Nostr event can be added as extra columns (e.g., `activity_type`, `period`, `goal` as shown above).
 -   The specific columns included in a CSV export can be tailored to the application or user's needs. Individual NIP-101h.X specifications may provide more tailored CSV column suggestions if particular tags are common for that metric.
-| goal             | No       | Target value for the metric (when applicable)                    |
-| period           | No       | Interval the metric applies to (e.g., `daily`, `PT1H`)            |
-| granularity      | No       | Sampling rate or aggregation level (e.g., `raw`, `per_minute`)   |
-| encryption_algo  | No       | Encryption algorithm used (e.g., 'nip44')                        |
 
 ## Versioning Policy
 
-All NIP-101h events MUST include a version tag: `['version', '1']`. This enables future upgrades and backward compatibility. If breaking changes are introduced, the version number will be incremented, and clients should handle events based on the version tag.
+All NIP-101h events SHOULD include a version tag: `['version', '1']` (RECOMMENDED). This enables future upgrades and backward compatibility. If breaking changes are introduced, the version number will be incremented, and clients should handle events based on the version tag.
+
+This tag is RECOMMENDED rather than MUST because specs 101h.1–101h.10 were written before it was introduced and omit it (as does the Canonical Event Example above). Future specs SHOULD include `version`, and clients SHOULD treat a missing `version` tag as version `1`.
 
 ## Canonical Tag Registry
 
 | Tag Name         | Required | Description                                                      |
 |------------------|----------|------------------------------------------------------------------|
 | t                | Yes      | Category and metric-specific tags (e.g., 'health', 'weight')     |
-| category         | Yes      | Top-level category (e.g., 'anthropometrics')                     |
+| category         | Recommended | Top-level category (e.g., 'anthropometrics'). Future specs SHOULD include it. |
 | subcategory      | No       | Subcategory for finer granularity (e.g., 'macronutrients')       |
 | unit             | Yes      | Canonical unit of measurement (e.g., 'kg', 'bpm')                |
 | converted_value  | No       | Alternate value and unit (e.g., ['converted_value', '154', 'lb'])|
@@ -278,15 +282,30 @@ All NIP-101h events MUST include a version tag: `['version', '1']`. This enables
 | encryption_algo  | No       | Encryption algorithm used (e.g., 'nip44')                        |
 | p                | No       | Receiver pubkey for encryption                                   |
 | encrypted        | No       | Explicit encryption status ('true'/'false')                      |
-| version          | Yes      | Protocol version (e.g., '1')                                     |
+| version          | Recommended | Protocol version (e.g., '1'). Future specs SHOULD include it; clients SHOULD treat a missing value as '1'. |
 | consent          | No       | Privacy/consent scope ('public', 'private', 'shared-with:<pubkey>') |
 | lang             | No       | Language code for i18n (e.g., 'en')                              |
-| e                | No       | Event reference for linking/threading                            |
+| e                | No       | Canonical tag for linking/threading to a related event (e.g., a parent session or summary). Use this instead of `related_event` or `activity_id`. |
+| activity_type    | No       | Canonical tag for the type of activity a metric relates to (e.g., 'running', 'cycling'). Use this instead of bare `activity`. |
 | dob              | No       | Date of birth (for age metric)                                   |
 | accuracy         | No       | Data accuracy, defaults to 'estimate'                              |
 | status           | No       | Status of the note, defaults to 'active'                              |
 
 Clients MUST ignore unknown tags and SHOULD preserve them when relaying events.
+
+### Canonical Tag Names for Shared Concepts
+
+Earlier specs spelled the same concept different ways. To keep the framework interoperable, the following canonical names are authoritative; specs and clients SHOULD use them and treat the listed variants as deprecated aliases:
+
+| Concept                          | Canonical tag   | Deprecated variants            |
+|----------------------------------|-----------------|--------------------------------|
+| Type of activity a metric is for | `activity_type` | `activity`                     |
+| Link to a related/parent event   | `e`             | `related_event`, `activity_id` |
+| Duration unit value (seconds)    | `seconds`       | `s`                            |
+| Food item (caloric data)         | `food_item`     | `food`                         |
+| Meal type (caloric data)         | `meal_type`     | `meal`                         |
+
+`e` follows the standard Nostr convention for event references and MAY carry a marker (e.g., `['e', <event_id>, <relay_hint>, 'correction']`).
 
 ## Privacy and Consent Tags
 
@@ -467,6 +486,8 @@ Clients MUST ignore unknown tags and SHOULD preserve them when relaying or expor
 
 ---
 
+> **Note:** The spec sections that follow (NIP-101h.1 through NIP-101h.4) are abbreviated copies for reference. The canonical version of each spec is in its own `NIP101h.X.md` file. Where this embedded copy and the standalone file differ, the standalone file is authoritative.
+
 # NIP-101h.1: Weight
 
 ## Description
@@ -549,12 +570,31 @@ The content field can use two formats:
 
 ### Examples
 
-```jsx
+```json
 // Example 1: Metric height
-Apply to App.jsx
+{
+  "kind": 1352,
+  "content": "175",
+  "tags": [
+    ["t", "health"],
+    ["t", "height"],
+    ["unit", "cm"]
+  ]
+}
+```
 
+```json
 // Example 2: Imperial height with conversion
-Apply to App.jsx
+{
+  "kind": 1352,
+  "content": "{\"feet\": 5, \"inches\": 9}",
+  "tags": [
+    ["t", "health"],
+    ["t", "height"],
+    ["unit", "imperial"],
+    ["converted_value", "175", "cm"]
+  ]
+}
 ```
 
 ### Implementation Notes
@@ -595,12 +635,32 @@ The content field MUST contain the numeric age value as a string.
 
 ### Examples
 
-```jsx
+```json
 // Example 1: Basic age
-Apply to App.jsx
+{
+  "kind": 1353,
+  "content": "30",
+  "tags": [
+    ["unit", "years"],
+    ["t", "health"],
+    ["t", "age"]
+  ]
+}
+```
 
+```json
 // Example 2: Age with DOB
-Apply to App.jsx
+{
+  "kind": 1353,
+  "content": "30",
+  "tags": [
+    ["unit", "years"],
+    ["t", "health"],
+    ["t", "age"],
+    ["dob", "1995-05-01"],
+    ["timestamp", "2025-05-01T10:00:00Z"]
+  ]
+}
 ```
 
 ### Implementation Notes
@@ -637,12 +697,29 @@ The content field contains a string representing the user's gender.
 
 ### Examples
 
-```jsx
+```json
 // Example 1: Basic gender
-Apply to App.jsx
+{
+  "kind": 1354,
+  "content": "female",
+  "tags": [
+    ["t", "health"],
+    ["t", "gender"]
+  ]
+}
+```
 
+```json
 // Example 2: Gender with timestamp
-Apply to App.jsx
+{
+  "kind": 1354,
+  "content": "non-binary",
+  "tags": [
+    ["t", "health"],
+    ["t", "gender"],
+    ["timestamp", "2025-05-01T10:00:00Z"]
+  ]
+}
 ```
 
 ### Implementation Notes

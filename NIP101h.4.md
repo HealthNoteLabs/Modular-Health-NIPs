@@ -35,12 +35,30 @@ While any string value is permitted, the following common values are recommended
 
 ### Examples
 
-```jsx
+```json
 // Example 1: Basic gender
-Apply to App.jsx
+{
+  "kind": 1354,
+  "content": "female",
+  "tags": [
+    ["t", "health"],
+    ["t", "gender"]
+  ]
+}
+```
 
+```json
 // Example 2: Gender with pronouns
-Apply to App.jsx
+{
+  "kind": 1354,
+  "content": "non-binary",
+  "tags": [
+    ["t", "health"],
+    ["t", "gender"],
+    ["preferred_pronouns", "they/them"],
+    ["timestamp", "2025-05-01T10:00:00Z"]
+  ]
+}
 ```
 
 ### Implementation Notes
