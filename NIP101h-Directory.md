@@ -34,6 +34,16 @@ This document provides a quick reference to the individual health and fitness me
 -   **[NIP-101h.14: Speed](./NIP101h.14.md)**
     -   **Kind:** `1364`
 
+## Medical & Biometrics
+
+-   **[NIP-101h.15: Heart Rate](./NIP101h.15.md)**
+    -   **Kind:** `1365`
+
+## Recovery & Wellness
+
+-   **[NIP-101h.16: Sleep](./NIP101h.16.md)**
+    -   **Kind:** `1366`
+
 ---
 
 For the full framework specification, see [NIP-101h](./NIP101h). 

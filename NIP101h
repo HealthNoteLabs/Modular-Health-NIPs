@@ -22,6 +22,8 @@ In this framework exists
 - NIP-101h.12 Pace using kind 1362
 - NIP-101h.13 Distance using kind 1363
 - NIP-101h.14 Speed using kind 1364
+- NIP-101h.15 Heart Rate using kind 1365
+- NIP-101h.16 Sleep using kind 1366
 
 ## Motivation
 
@@ -57,7 +59,9 @@ The table below reflects where kinds are **actually assigned**. The metrics publ
 | ------------ | --------------------------- | ---------------------------------------- |
 | 1351–1354    | Anthropometrics             | Assigned (Weight, Height, Age, Gender)   |
 | 1355–1364    | Activity & Fitness          | Assigned (Fitness Level → Speed; includes Calories Expended 1357) |
-| 1365–1389    | Activity & Fitness          | Reserved (continuation for future activity metrics) |
+| 1365         | Medical & Biometrics        | Assigned (Heart Rate) — sits in the activity continuation band for sequential continuity; tagged `medical & biometrics` |
+| 1366         | Recovery & Wellness         | Assigned (Sleep) — sits in the activity continuation band for sequential continuity; tagged `recovery & wellness` |
+| 1367–1389    | Activity & Fitness          | Reserved (continuation for future activity metrics) |
 | 1390–1409    | Nutrition & Diet            | Reserved                                 |
 | 1410–1429    | Sleep                       | Reserved                                 |
 | 1430–1449    | Mental Health & Mindfulness | Reserved                                 |
